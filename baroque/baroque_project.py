@@ -18,9 +18,9 @@ class BaroqueProject(object):
             "path": "",
             "files": {
                 "wav": [],
-                "mp4": [],
+                "mp3": [],
                 "jpg": [],
-                "mets": [],
+                "xml": [],
                 "md5": [],
                 "txt": []
             },
@@ -40,14 +40,19 @@ class BaroqueProject(object):
             print("destination_directory does not exist")
             sys.exit()
 
-        self.source_directory = source_directory
-        self.destination_directory = destination_directory
-        source_type = self.characterize_source_directory(source_directory)
-        if source_type == "shipment":
+        self.source = source_directory
+        self.destination = destination_directory
+
+        self.shipment = []
+        self.collections = []
+        self.items = []
+
+        self.source_type = self.characterize_source_directory(source_directory)
+        if self.source_type == "shipment":
             self.process_shipment(source_directory)
-        elif source_type == "collection":
+        elif self.source_type == "collection":
             self.process_collection(source_directory)
-        elif source_type == "item":
+        elif self.source_type == "item":
             self.process_item(source_directory)
 
     def characterize_source_directory(self, character_directory):
@@ -75,12 +80,35 @@ class BaroqueProject(object):
 
     def process_shipment(self, shipment_directory):
         """ Process all collections in a shipment """
-        pass
+        self.shipment.append({
+            "id": os.path.basename(shipment_directory),
+            "path": shipment_directory
+        })
+
+        for collection in os.listdir(shipment_directory):
+            self.process_collection(os.path.join(shipment_directory, collection))
 
     def process_collection(self, collection_directory):
         """ Process all items in a collection """
-        pass
+        self.collections.append({
+            "id": os.path.basename(collection_directory),
+            "path": collection_directory
+        })
+
+        for item in os.listdir(collection_directory):
+            self.process_item(os.path.join(collection_directory, item))
 
     def process_item(self, item_directory):
         """ Process all files in an item """
-        pass
+        files = {"wav": [], "mp3": [], "jpg": [], "xml": [], "md5": [], "txt": []}
+
+        for file in os.listdir(item_directory):
+            for type in list(files.keys()):
+                if file.lower().endswith(type):
+                    files[type].append(file)
+
+        self.items.append({
+            "id": os.path.basename(item_directory),
+            "path": item_directory,
+            "files": files
+        })
