@@ -37,12 +37,12 @@ class BaroqueProject(object):
             print("source_directory does not exist")
             sys.exit()
         if not os.path.exists(destination_directory):
-            print("destiantion_directory does not exist")
+            print("destination_directory does not exist")
             sys.exit()
 
         self.source_directory = source_directory
         self.destination_directory = destination_directory
-        source_type = self.characterize_source_directory()
+        source_type = self.characterize_source_directory(source_directory)
         if source_type == "shipment":
             self.process_shipment(source_directory)
         elif source_type == "collection":
@@ -50,9 +50,28 @@ class BaroqueProject(object):
         elif source_type == "item":
             self.process_item(source_directory)
 
-    def characterize_source_directory(self):
+    def characterize_source_directory(self, character_directory):
         """ Determine if source_directory is a shipment, collection, or item """
-        pass
+        character_directory_name = os.path.basename(character_directory)
+        character_directory_dirs = []
+        character_directory_files = []
+
+        for file in os.listdir(character_directory):
+            if os.path.isfile(os.path.join(character_directory, file)):
+                character_directory_files.append(file)
+            else:
+                character_directory_dirs.append(file)
+
+        if len(character_directory_files) > 0:
+            return "item"
+        elif len(character_directory_dirs) > 0:
+            if character_directory_dirs[0].startswith(character_directory_name) is True:
+                return "collection"
+            else:
+                return "shipment"
+        else:
+            print("source_directory is empty")
+            sys.exit()
 
     def process_shipment(self, shipment_directory):
         """ Process all collections in a shipment """
