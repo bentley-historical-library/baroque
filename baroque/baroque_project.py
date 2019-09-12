@@ -34,10 +34,10 @@ class BaroqueProject(object):
 
     def __init__(self, source_directory, destination_directory):
         if not os.path.exists(source_directory):
-            print("source_directory does not exist")
+            print("ERROR: source_directory does not exist")
             sys.exit()
         if not os.path.exists(destination_directory):
-            print("destination_directory does not exist")
+            print("ERROR: destination_directory does not exist")
             sys.exit()
 
         self.source_directory = source_directory
@@ -66,14 +66,11 @@ class BaroqueProject(object):
             elif dir_entry.is_dir():
                 character_directory_dirs.append(str(dir_entry.name))
 
-        print(character_directory_dirs)
-        print(character_directory_files)
-
         if len(character_directory_files) > 0 and len(character_directory_dirs) == 0:
             if all([filename.startswith(character_directory_name) for filename in character_directory_files]):
                 return "item"
             else:
-                print("source_directory looks like an item but has unexpected filenames")
+                print("ERROR: source_directory looks like an item but has unexpected filenames")
                 sys.exit()
         elif len(character_directory_dirs) > 0:
             if any([directory.startswith(character_directory_name) for directory in character_directory_dirs]):
@@ -81,7 +78,7 @@ class BaroqueProject(object):
             else:
                 return "shipment"
         else:
-            print("source_directory is empty")
+            print("ERROR: source_directory is empty")
             sys.exit()
 
     def process_shipment(self, shipment_directory):
