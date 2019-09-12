@@ -105,13 +105,28 @@ class BaroqueProject(object):
                 self.process_item(dir_entry.path)
 
     def process_item(self, item_directory):
-        """ Process all files in an item """
-        files = {"wav": [], "mp3": [], "jpg": [], "xml": [], "md5": [], "txt": []}
+        files = {"wav": [], "mp3": [], "jpg": [], "xml": [], "md5": [], "txt": [], "other": []}
+
+        file_formats = {
+            "wav": ["wav", "wave"],
+            "mp3": ["mp3"],
+            "jpg": ["jpg", "jpeg", "jpe", "jif", "jfif", "jfi"],
+            "xml": ["xml"],
+            "md5": ["md5"],
+            "txt": ["txt"]
+        }
 
         for file in os.listdir(item_directory):
-            for type in list(files.keys()):
-                if file.lower().endswith(type):
-                    files[type].append(file)
+            other = True
+            extension = file.lower().split(".")[-1]
+
+            for format, extensions in file_formats.items():
+                if extension in extensions:
+                    files[format].append(file)
+                    other = False
+
+            if other is True:
+                files["other"].append(file)
 
         self.items.append({
             "id": os.path.basename(item_directory),
