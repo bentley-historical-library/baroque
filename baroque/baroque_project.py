@@ -40,14 +40,14 @@ class BaroqueProject(object):
             print("destination_directory does not exist")
             sys.exit()
 
-        self.source = source_directory
-        self.destination = destination_directory
+        self.source_directory = source_directory
+        self.destination_directory = destination_directory
 
         self.shipment = []
         self.collections = []
         self.items = []
 
-        self.source_type = self.characterize_source_directory(source_directory)
+        self.source_type = self.characterize_source_directory()
         if self.source_type == "shipment":
             self.process_shipment(source_directory)
         elif self.source_type == "collection":
@@ -55,22 +55,28 @@ class BaroqueProject(object):
         elif self.source_type == "item":
             self.process_item(source_directory)
 
-    def characterize_source_directory(self, character_directory):
-        """ Determine if source_directory is a shipment, collection, or item """
-        character_directory_name = os.path.basename(character_directory)
+    def characterize_source_directory(self):
+        character_directory_name = os.path.basename(self.source_directory)
         character_directory_dirs = []
         character_directory_files = []
 
-        for file in os.listdir(character_directory):
-            if os.path.isfile(os.path.join(character_directory, file)):
-                character_directory_files.append(file)
-            else:
-                character_directory_dirs.append(file)
+        for dir_entry in os.scandir(self.source_directory):
+            if dir_entry.is_file():
+                character_directory_files.append(str(dir_entry.name))
+            elif dir_entry.is_dir():
+                character_directory_dirs.append(str(dir_entry.name))
 
-        if len(character_directory_files) > 0:
-            return "item"
+        print(character_directory_dirs)
+        print(character_directory_files)
+
+        if len(character_directory_files) > 0 and len(character_directory_dirs) == 0:
+            if all([filename.startswith(character_directory_name) for filename in character_directory_files]):
+                return "item"
+            else:
+                print("source_directory looks like an item but has unexpected filenames")
+                sys.exit()
         elif len(character_directory_dirs) > 0:
-            if character_directory_dirs[0].startswith(character_directory_name) is True:
+            if any([directory.startswith(character_directory_name) for directory in character_directory_dirs]):
                 return "collection"
             else:
                 return "shipment"
@@ -79,24 +85,24 @@ class BaroqueProject(object):
             sys.exit()
 
     def process_shipment(self, shipment_directory):
-        """ Process all collections in a shipment """
         self.shipment.append({
             "id": os.path.basename(shipment_directory),
             "path": shipment_directory
         })
 
-        for collection in os.listdir(shipment_directory):
-            self.process_collection(os.path.join(shipment_directory, collection))
+        for dir_entry in os.scandir(shipment_directory):
+            if dir_entry.is_dir():
+                self.process_collection(dir_entry.path)
 
     def process_collection(self, collection_directory):
-        """ Process all items in a collection """
         self.collections.append({
             "id": os.path.basename(collection_directory),
             "path": collection_directory
         })
 
-        for item in os.listdir(collection_directory):
-            self.process_item(os.path.join(collection_directory, item))
+        for dir_entry in os.scandir(collection_directory):
+            if dir_entry.is_dir():
+                self.process_item(dir_entry.path)
 
     def process_item(self, item_directory):
         """ Process all files in an item """
