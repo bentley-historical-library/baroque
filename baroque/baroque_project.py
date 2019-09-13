@@ -69,9 +69,11 @@ class BaroqueProject(object):
         if len(character_directory_files) > 0 and len(character_directory_dirs) == 0:
             if all([filename.startswith(character_directory_name) for filename in character_directory_files]):
                 return "item"
+            '''
             else:
                 print("ERROR: source_directory looks like an item but has unexpected filenames")
                 sys.exit()
+            '''
         elif len(character_directory_dirs) > 0:
             if any([directory.startswith(character_directory_name) for directory in character_directory_dirs]):
                 return "collection"
