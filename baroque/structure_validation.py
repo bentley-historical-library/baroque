@@ -51,7 +51,7 @@ def check_empty_directory(directory_path):
         print("ERROR: " + os.path.basename(directory_path) + " is empty")
 
 
-def validate_directories(baroqueproject, metadata_export):
+def validate_structure(baroqueproject, metadata_export):
     levels = ["collections", "items"]
 
     for level in levels:
