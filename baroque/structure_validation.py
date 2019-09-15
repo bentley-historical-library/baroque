@@ -35,7 +35,7 @@ def parse_metadata_export(metadata_export, level):
             item_id = row.get("DigFile Calc").strip()
             items_ids.append(item_id)
 
-    # Collection IDs are parsed from Item IDs
+    # Collection IDs are parsed from item IDs
     if level == "collections":
         for i in items_ids:
             collection_id = i.split("-")[0]
@@ -111,9 +111,11 @@ def validate_file(baroqueproject):
                 if not unit_name + name_format in audio_names:
                     print("ERROR: " + unit_name + "-am.wav" + " does not have " + name_format[1:] + " file")
 
-        # "Does this item folder have more than 3 jpg files?"
+        # "Does this item folder have 3 or more jpg files?"
         if len(item["files"]["jpg"]) == 0:
             print("ERROR: " + item["id"] + " does not include jpg file")
+        elif len(item["files"]["jpg"]) < 3:
+            print("ERROR: " + item["id"] + " includes less than 3 jpg file")
 
         # "Does this item folder have only 1 xml file?"
         if len(item["files"]["xml"]) == 0:
@@ -121,7 +123,7 @@ def validate_file(baroqueproject):
         elif len(item["files"]["xml"]) > 1:
             print("ERROR: " + item["id"] + " includes more than 1 xml file")
 
-        # "Does this item folder have either 0 txt file or only 1 txt file?"
+        # "Does this item folder have either no or only 1 txt file?"
         if len(item["files"]["txt"]) > 1:
             print("ERROR: " + item["id"] + " includes more than 1 txt file")
 
