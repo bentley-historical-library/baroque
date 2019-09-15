@@ -108,12 +108,20 @@ def validate_file(baroqueproject):
 
 def validate_structure(baroqueproject, metadata_export):
     if baroqueproject.source_type == "shipment":
-        levels = ["collections", "items"]
-        for level in levels:
-            validate_directory(baroqueproject, metadata_export, level)
+        if not os.path.exists(metadata_export):
+            print("ERROR: metadata_export does not exist")
+            sys.exit()
+        else:
+            levels = ["collections", "items"]
+            for level in levels:
+                validate_directory(baroqueproject, metadata_export, level)
 
     elif baroqueproject.source_type == "collection":
-        level = "items"
-        validate_directory(baroqueproject, metadata_export, level)
+        if not os.path.exists(metadata_export):
+            print("ERROR: metadata_export does not exist")
+            sys.exit()
+        else:
+            level = "items"
+            validate_directory(baroqueproject, metadata_export, level)
 
     validate_file(baroqueproject)
