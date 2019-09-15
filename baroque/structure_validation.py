@@ -2,6 +2,10 @@ import csv
 import os
 import sys
 
+# structure_validation.py runs "validate_structure", which calls for "validate_directory" and "validate_file".
+# "validate_directory" uses "parse_baroqueproject", "parse_metadata_export", "compare_ids", and "check_empty_directory".
+# "validate_file" uses "check_empty_file".
+
 
 def parse_baroqueproject(baroqueproject, level):
     ids = []
@@ -15,6 +19,9 @@ def parse_baroqueproject(baroqueproject, level):
 
 
 def parse_metadata_export(metadata_export, level):
+    """
+    This function parses collection IDs or item IDs from the "DigFile Calc" column in the metadata export file.
+    """
     if not os.path.exists(metadata_export):
         print("ERROR: metadata export does not exist")
         sys.exit()
@@ -28,6 +35,7 @@ def parse_metadata_export(metadata_export, level):
             item_id = row.get("DigFile Calc").strip()
             items_ids.append(item_id)
 
+    # Collection IDs are parsed from Item IDs
     if level == "collections":
         for i in items_ids:
             collection_id = i.split("-")[0]
@@ -61,6 +69,13 @@ def check_empty_file(file_path):
 
 
 def validate_directory(baroqueproject, metadata_export, level):
+    """
+    To validate a directory name, this function parses
+    (1) IDs from a baroqueproject object (which is based on what the vendor returned) and
+    (2) a metadata_export file (which is based on what BHL sent)
+    create two ID lists, cross-compare the two ID lists, and print any ID that does not exists NOT in BOTH lists.
+    It also checks for any empty directory.
+    """
     process_ids, process_paths = parse_baroqueproject(baroqueproject, level)
     export_ids = parse_metadata_export(metadata_export, level)
 
@@ -71,6 +86,11 @@ def validate_directory(baroqueproject, metadata_export, level):
 
 
 def validate_file(baroqueproject):
+    """
+    This function validate (1) file names in an item-level directory and
+    (2) the item-level directory itself (i.e., "is it well-formed?").
+    It also checks any empty file (excepts for txt files) in an item-level directory.
+    """
     for item in baroqueproject.items:
         audio_names = item["files"]["wav"] + item["files"]["mp3"] + item["files"]["md5"]
         unit_names = []
@@ -80,26 +100,32 @@ def validate_file(baroqueproject):
             if "am" in wav_file:
                 unit_names.append(wav_file.replace("-am.wav", ""))
 
+        # "Does all file names in this item folder starts with item ID?"
         for audio_name in audio_names:
             if not audio_name.startswith(item["id"]):
                 print("ERROR: " + audio_name + " has invalid filename")
 
+        # "Does each am-wav file in this item folder have respective pm-wav, mp3, md5 files?"
         for unit_name in unit_names:
             for name_format in name_formats:
                 if not unit_name + name_format in audio_names:
                     print("ERROR: " + unit_name + "-am.wav" + " does not have " + name_format[1:] + " file")
 
+        # "Does this item folder have more than 3 jpg files?"
         if len(item["files"]["jpg"]) == 0:
             print("ERROR: " + item["id"] + " does not include jpg file")
 
+        # "Does this item folder have only 1 xml file?"
         if len(item["files"]["xml"]) == 0:
             print("ERROR: " + item["id"] + " does not include xml file")
         elif len(item["files"]["xml"]) > 1:
             print("ERROR: " + item["id"] + " includes more than 1 xml file")
 
+        # "Does this item folder have either 0 txt file or only 1 txt file?"
         if len(item["files"]["txt"]) > 1:
             print("ERROR: " + item["id"] + " includes more than 1 txt file")
 
+        # "Does this item folder have any superfluous files?"
         if len(item["files"]["other"]) > 0:
             print("ERROR: " + item["id"] + " includes unexpected files:", item["files"]["other"])
 
@@ -107,6 +133,12 @@ def validate_file(baroqueproject):
 
 
 def validate_structure(baroqueproject, metadata_export):
+    """
+    If the source directory is a shipment,
+    this function runs "validate_directory" on collection/item-level and "validate_file" on item-level.
+    If the source directory is a collecion, it runs "validate_directory" and "validate_file" on item-level.
+    If the source directory is an item, "validate_file" on item-level.
+    """
     if baroqueproject.source_type == "shipment":
         if not os.path.exists(metadata_export):
             print("ERROR: metadata_export does not exist")

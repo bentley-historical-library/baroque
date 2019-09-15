@@ -3,7 +3,8 @@ import sys
 
 
 class BaroqueProject(object):
-    """ Stores details about the current project.
+    """
+    Stores details about the current project.
 
     It takes a path to a source directory and a path to a destination directory:
     - the source directory can be either a shipment-level, collection-level, or item-level directory.
@@ -71,21 +72,23 @@ class BaroqueProject(object):
             self.parse_item(source_directory)
 
     def characterize_source_directory(self):
-        # Characterize the source directory level by analyzing what is inside the source directory
+        """
+        Characterize the source directory level by analyzing what is inside the source directory.
+        """
         character_directory_name = os.path.basename(self.source_directory)
         character_directory_dirs = []
         character_directory_files = []
 
+        # Loop the source directory to get files and sub-directories and append their name into respective lists
         for dir_entry in os.scandir(self.source_directory):
-            # Loop the source directory to get files and sub-directories and append their name into respective lists
             if dir_entry.is_file():
                 character_directory_files.append(str(dir_entry.name))
             elif dir_entry.is_dir():
                 character_directory_dirs.append(str(dir_entry.name))
 
+        # Return the source directory level as "item", if the lists show the source directory
+        # has files and does not have sub-directories
         if len(character_directory_files) > 0 and len(character_directory_dirs) == 0:
-            # Return the source directory level as "item", if the lists show the source directory
-            # has files and does not have sub-directories
             if all([filename.startswith(character_directory_name) for filename in character_directory_files]):
                 return "item"
             '''
@@ -94,24 +97,28 @@ class BaroqueProject(object):
                 sys.exit()
             '''
         elif len(character_directory_dirs) > 0:
+            # Return the source directory level as "collection", if the lists show the source directory
+            # has sub-directories and sub-directory names start with the source directory name
             if any([directory.startswith(character_directory_name) for directory in character_directory_dirs]):
-                # Return the source directory level as "collection", if the lists show the source directory
-                # has sub-directories and sub-directory names start with the source directory name
                 return "collection"
+
+            # Return the source directory level as "shipment", if the lists show the source directory
+            # has sub-directories and sub-directory names do not start with the source directory name
             else:
-                # Return the source directory level as "shipment", if the lists show the source directory
-                # has sub-directories and sub-directory names do not start with the source directory name
                 return "shipment"
+
+        # Exit when the source directory does not have files nor sub-directories
         else:
-            # Exit when the source directory does not have files nor sub-directories
             print("ERROR: source_directory is empty")
             sys.exit()
 
     def parse_shipment(self, shipment_directory):
-        # Take a shipment-level directory path, parse its id and directory path,
-        # and add a dictionary to the "shipment" attribute
-        # Then, loop the shipment-level directory for collection-level directories,
-        # and run "parse_collection" method on each collection-level directory
+        """
+        Take a shipment-level directory path, parse its id and directory path,
+        and add a dictionary to the "shipment" attribute.
+        Then, loop the shipment-level directory for collection-level directories,
+        and run "parse_collection" method on each collection-level directory.
+        """
         self.shipment.append({
             "id": os.path.basename(shipment_directory),
             "path": shipment_directory
@@ -122,10 +129,12 @@ class BaroqueProject(object):
                 self.parse_collection(dir_entry.path)
 
     def parse_collection(self, collection_directory):
-        # Take a collection-level directory path, parse its id and directory path,
-        # and add a dictionary to the "collections" attribute
-        # Then, loop the directory for collection-level directories,
-        # and run "parse_item" method on each item-level directory
+        """
+        Take a collection-level directory path, parse its id and directory path,
+        and add a dictionary to the "collections" attribute.
+        Then, loop the directory for collection-level directories,
+        and run "parse_item" method on each item-level directory.
+        """
         self.collections.append({
             "id": os.path.basename(collection_directory),
             "path": collection_directory
@@ -136,8 +145,10 @@ class BaroqueProject(object):
                 self.parse_item(dir_entry.path)
 
     def parse_item(self, item_directory):
-        # Take a item-level directory path, parse id, directory path, files by their file formats,
-        # and add a dictionary to the "items" attribute
+        """
+        Take a item-level directory path, parse id, directory path, files by their file formats,
+        and add a dictionary to the "items" attribute.
+        """
         files = {"wav": [], "mp3": [], "jpg": [], "xml": [], "md5": [], "txt": [], "other": []}
         file_formats = {
             "wav": ["wav", "wave"],
