@@ -13,14 +13,15 @@ Available actions include:
 
 |Argument | Description |
 | --- | --- |
-| -d, --directories | Validate directory structure |
+| -s, --structure | Validate directory and file structure |
+| -e, --export | Path to metadata export |
 | -m, --mets | Validate METS XML |
 | -w, --wav | Validate WAV BEXT Chunks
 | -f, --files | Validate files |
 | -c, --checksums | Validate checksums |
 
-An example command to validate directory structure might look like:
+An example command to validate directory and file structure for a shipment-level directory might look like:
 
-`baroque.py /path/to/shipment /path/to/reports -d`
+`baroque.py /path/to/shipment /path/to/reports -s -e /path/to/metadata/export`
 
 BAroQUe will run the validation steps and output a report, including errors, in the specified destination_directory

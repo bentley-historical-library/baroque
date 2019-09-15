@@ -21,9 +21,6 @@ def main():
     parser.add_argument("-c", "--checksums", action="store_true", help="Validate checksums")
     args = parser.parse_args()
 
-    if args.structure and not args.export:
-        parser.error("--export is required for --directories.")
-
     project = BaroqueProject(args.source, args.destination)
     if args.structure:
         validate_structure(project, args.export)
