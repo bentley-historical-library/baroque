@@ -6,9 +6,10 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
 
-# structure_validation.py runs "validate_structure", which calls for "validate_directory" and "validate_file".
-# "validate_directory" uses "parse_baroqueproject", "parse_metadata_export", "compare_ids", and "check_empty_directory".
-# "validate_file" uses "check_empty_file".
+# structure_validation.py runs "validate_structure", which calls for "validate_directory" and "validate_file"
+# "validate_directory" uses "parse_baroqueproject", "parse_metadata_export", "compare_ids", and "check_empty_directory"
+# "validate_file" uses "check_item_files" and "check_intellectual_groups"
+# "check_item_files" uses "check_empty_file" and "check_intellectual_groups" uses "create_intellectual_groups"
 
 
 def parse_baroqueproject(baroqueproject, level):
@@ -116,53 +117,135 @@ def validate_directory(baroqueproject, metadata_export, level):
         check_empty_directory(path)
 
 
-def validate_file(baroqueproject):
+def check_item_files(baroqueproject):
     """
-    This function validate (1) file names in an item-level directory and
-    (2) the item-level directory itself (i.e., "is it well-formed?").
-    It also checks any empty file (excepts for txt files) in an item-level directory.
+    Check that the minimum number of required files are present for each item (e.g., SR-1234-1).
+    For each item, output the file type and the number of files that are below the minimum requirements.
+    For each item, output the file type and the number of files that are above the maximum requirements.
+    Report out any "other" files and check whether any files are empty.
     """
+    min_file_nums = {"wav": 2, "mp3": 1, "md5": 3, "jpg": 3, "xml": 1, "txt": 1}
+
     for item in baroqueproject.items:
-        audio_names = item["files"]["wav"] + item["files"]["mp3"] + item["files"]["md5"]
-        unit_names = []
-        name_formats = ["-am.wav.md5", "-pm.wav", "-pm.wav.md5", ".mp3", ".mp3.md5"]
+        min_output = {}
+        max_output = {}
+        other_output = []
 
-        for wav_file in item["files"]["wav"]:
-            if "am" in wav_file:
-                unit_names.append(wav_file.replace("-am.wav", ""))
+        for file_type, files in item["files"].items():
+            if file_type != "other":
+                if len(files) < min_file_nums.get(file_type):
+                    min_output[file_type] = len(files)
 
-        # "Does all file names in this item folder starts with item ID?"
-        for audio_name in audio_names:
-            if not audio_name.startswith(item["id"]):
-                print("ERROR: " + audio_name + " has invalid filename")
+            if file_type == "xml" or file_type == "txt":
+                if len(files) > 1:
+                    max_output[file_type] = len(files)
 
-        # "Does each am-wav file in this item folder have respective pm-wav, mp3, md5 files?"
-        for unit_name in unit_names:
-            for name_format in name_formats:
-                if not unit_name + name_format in audio_names:
-                    print("ERROR: " + unit_name + "-am.wav" + " does not have " + name_format[1:] + " file")
+            if file_type == "other":
+                if len(files) > 0:
+                    other_output = files
 
-        # "Does this item folder have 3 or more jpg files?"
-        if len(item["files"]["jpg"]) == 0:
-            print("ERROR: " + item["id"] + " does not include jpg file")
-        elif len(item["files"]["jpg"]) < 3:
-            print("ERROR: " + item["id"] + " includes less than 3 jpg file")
-
-        # "Does this item folder have only 1 xml file?"
-        if len(item["files"]["xml"]) == 0:
-            print("ERROR: " + item["id"] + " does not include xml file")
-        elif len(item["files"]["xml"]) > 1:
-            print("ERROR: " + item["id"] + " includes more than 1 xml file")
-
-        # "Does this item folder have either no or only 1 txt file?"
-        if len(item["files"]["txt"]) > 1:
-            print("ERROR: " + item["id"] + " includes more than 1 txt file")
-
-        # "Does this item folder have any superfluous files?"
-        if len(item["files"]["other"]) > 0:
-            print("ERROR: " + item["id"] + " includes unexpected files:", item["files"]["other"])
+        if len(min_output.keys()) > 0:
+            print("ERROR: " + item["id"] + " does not have minimum required files:", min_output)
+        if len(max_output.keys()) > 0:
+            print("ERROR: " + item["id"] + " has more than maximum required files:", max_output)
+        if len(other_output) > 0:
+            print("ERROR: " + item["id"] + " has other files:", other_output)
 
         check_empty_file(item["path"])
+
+
+def create_intellectual_groups(baroqueproject):
+    """
+    Create intellectual groups of md5, mp3, and wav files. Return a dictionary with the following format:
+        {
+            item id (e.g., 85429-SR-1) :
+            {
+                part id (e.g., 85429-SR-1-1) : [part files (e.g., 85429-SR-1-1-am.wav)]
+            }
+        }
+    """
+    part_file_types = ["md5", "mp3", "wav"]
+    items = {}
+
+    for item in baroqueproject.items:
+        for file_type, files in item["files"].items():
+            if file_type in part_file_types:
+                for file in files:
+
+                    # Isolate file names without extensions (e.g., "-am.wav").
+                    # NOTE: This section feels a little clunky.
+                    name = file.split(".")[0].split("-")
+                    if name[-1].lower() == "am" or name[-1].lower() == "pm":
+                        name = name[:-1]
+                    name = "-".join(name)
+
+                    # Create dictionary of intellectual groups
+                    if item["id"] not in items.keys():
+                        items[item["id"]] = {}
+                    if name not in items[item["id"]].keys():
+                        items[item["id"]][name] = []
+                    items[item["id"]][name].append(file)
+
+    return items
+
+
+def check_intellectual_groups(baroqueproject):
+    """
+    Check that intellectual groups are well-formed by:
+    (1) Check that each part number is consecutively numbered.
+    (2) Check that each part only has 6 files.
+    (3) Check that each part has exactly one of the 6 required file formats.
+    """
+    items = create_intellectual_groups(baroqueproject)
+
+    for item in items.keys():
+
+        # Check that each of the part numbers is consecutive
+        part_ids = []
+        consecutive = True
+
+        for part_id in items[item].keys():
+            part_ids.append(part_id)
+
+        part_ids.sort()
+
+        for n in range(len(part_ids)):
+            if not part_ids[n].endswith(str(n + 1)):
+                consecutive = False
+
+        if not consecutive:
+            print("ERROR: The parts of item", item, "are not consecutively numbered:", part_ids)
+
+        for part in items[item]:
+            # Check that each part only has 6 files.
+            if len(items[item][part]) > 6:
+                print("ERROR: There are", len(items[item][part]) - 6, "extra files in the", part, "part.")
+
+            if len(items[item][part]) < 6:
+                print("ERROR: There are", 6 - len(items[item][part]), "missing files in the", part, "part.")
+
+            if len(items[item][part]) == 6:
+
+                # Check that the part only has one of each of the required file formats.
+                count_formats = {"-am.wav": 0, "-am.wav.md5": 0, "-pm.wav": 0, "-pm.wav.md5": 0, ".mp3": 0,
+                                 ".mp3.md5": 0}
+
+                for file in items[item][part]:
+                    for format in count_formats.keys():
+                        if file.endswith(format):
+                            count_formats[format] += 1
+
+                for format in count_formats.keys():
+                    if count_formats[format] > 1:
+                        print("ERROR: There are", count_formats[format] - 1, "extra", format, "files in the", part,
+                              "part.")
+                    if count_formats[format] < 1:
+                        print("ERROR: There is 1 missing", format, "file in the", part, "part.")
+
+
+def validate_file(baroqueproject):
+    check_item_files(baroqueproject)
+    check_intellectual_groups(baroqueproject)
 
 
 def validate_structure(baroqueproject, metadata_export):
