@@ -2,6 +2,10 @@ import csv
 import os
 import sys
 
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+
+
 # structure_validation.py runs "validate_structure", which calls for "validate_directory" and "validate_file".
 # "validate_directory" uses "parse_baroqueproject", "parse_metadata_export", "compare_ids", and "check_empty_directory".
 # "validate_file" uses "check_empty_file".
@@ -21,6 +25,7 @@ def parse_baroqueproject(baroqueproject, level):
 def parse_metadata_export(metadata_export, level):
     """
     This function parses collection IDs or item IDs from the "DigFile Calc" column in the metadata export file.
+    The metadata export file can be either csv or xlsx.
     """
     if not os.path.exists(metadata_export):
         print("ERROR: metadata export does not exist")
@@ -29,13 +34,39 @@ def parse_metadata_export(metadata_export, level):
     collection_ids = []
     items_ids = []
 
-    with open(metadata_export, "r", newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            item_id = row.get("DigFile Calc").strip()
-            items_ids.append(item_id)
+    # File type: csv
+    if metadata_export.lower().endswith(".csv"):
+        with open(metadata_export, "r", newline="") as f:
+            reader = csv.DictReader(f)
 
-    # Collection IDs are parsed from item IDs
+            for row in reader:
+                item_id = row.get("DigFile Calc").strip()
+                items_ids.append(item_id)
+
+    # File type: xlsx
+    elif metadata_export.lower().endswith(".xlsx"):
+        workbook = load_workbook(metadata_export)
+        sheet = workbook.active
+
+        # Get the column letter for the "DigFile Calc" column
+        target_col_letter = ""
+        for col in sheet["1"]:
+            if col.value == "DigFile Calc":
+                target_col_letter = get_column_letter(col.column)
+        # Set the range for rows (containing Item IDs) in the "DigFile Calc" column
+        target_range = target_col_letter + "2:" + target_col_letter + str(sheet.max_row)
+
+        for row in sheet[target_range]:
+            for cell in row:
+                item_id = cell.value.strip()
+                items_ids.append(item_id)
+
+    # File type: neither csv nor xlsx
+    else:
+        print("ERROR: metadata export is unexpected file type")
+        sys.exit()
+
+    # NOTE: Collection IDs are parsed from item IDs
     if level == "collections":
         for i in items_ids:
             collection_id = i.split("-")[0]
@@ -138,7 +169,7 @@ def validate_structure(baroqueproject, metadata_export):
     """
     If the source directory is a shipment,
     this function runs "validate_directory" on collection/item-level and "validate_file" on item-level.
-    If the source directory is a collecion, it runs "validate_directory" and "validate_file" on item-level.
+    If the source directory is a collection, it runs "validate_directory" and "validate_file" on item-level.
     If the source directory is an item, "validate_file" on item-level.
     """
     if baroqueproject.source_type == "shipment":
