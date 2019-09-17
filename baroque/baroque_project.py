@@ -64,6 +64,7 @@ class BaroqueProject(object):
         self.items = []
 
         self.source_type = self.characterize_source_directory()
+        print("SYSTEM: source_directory is {}".format(self.source_type))
         if self.source_type == "shipment":
             self.parse_shipment(source_directory)
         elif self.source_type == "collection":
