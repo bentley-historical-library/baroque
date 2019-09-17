@@ -119,37 +119,52 @@ def validate_directory(baroqueproject, metadata_export, level):
 
 def check_item_files(baroqueproject):
     """
-    Check that the minimum number of required files are present for each item (e.g., SR-1234-1).
-    For each item, output the file type and the number of files that are below the minimum requirements.
-    For each item, output the file type and the number of files that are above the maximum requirements.
+    Check that the minimum number of required files are present for each item (e.g., 1234-SR-1).
+    Check that each item does not have more than the maximum number of permissible files.
     Report out any "other" files and check whether any files are empty.
     """
-    min_file_nums = {"wav": 2, "mp3": 1, "md5": 3, "jpg": 3, "xml": 1, "txt": 1}
+    # Minimum number of files required.
+    min_file_nums = {"wav": 2, "mp3": 1, "md5": 3, "jpg": 3, "xml": 1, "txt": 0}
+    # Maximum number of files permissible.
+    max_file_nums = {"xml": 1, "txt": 1}
 
     for item in baroqueproject.items:
+
         min_output = {}
         max_output = {}
         other_output = []
+        name_output = []
 
         for file_type, files in item["files"].items():
+            # For each item, output the file type and the number of files that are below the minimum requirements.
             if file_type != "other":
                 if len(files) < min_file_nums.get(file_type):
                     min_output[file_type] = len(files)
-
-            if file_type == "xml" or file_type == "txt":
-                if len(files) > 1:
+            # For each item, output the file type and the number of files that are above the maximum requirements.
+            if file_type in max_file_nums.keys():
+                if len(files) > max_file_nums.get(file_type):
                     max_output[file_type] = len(files)
-
+            # For each item, output the file type and the number of files that are identified as "other" files.
             if file_type == "other":
                 if len(files) > 0:
                     other_output = files
+            # For each item, out the file names that do no start with the item id.
+            for file in files:
+                if not file.startswith(item["id"]):
+                    name_output.append(file)
 
         if len(min_output.keys()) > 0:
             print("ERROR: " + item["id"] + " does not have minimum required files:", min_output)
         if len(max_output.keys()) > 0:
             print("ERROR: " + item["id"] + " has more than maximum required files:", max_output)
         if len(other_output) > 0:
-            print("ERROR: " + item["id"] + " has other files:", other_output)
+            for file in other_output:
+                if file not in ["Thumbs.db", ".DS_Store", "Desktop DB", "Desktop DF"]:
+                    print("ERROR: " + item["id"] + " has other files:", other_output)
+        if len(name_output) > 0:
+            for file in name_output:
+                if file not in ["Thumbs.db", ".DS_Store", "Desktop DB", "Desktop DF"]:
+                    print("ERROR: " + item["id"] + " has file names that do not start with the item id:", name_output)
 
         check_empty_file(item["path"])
 
@@ -191,15 +206,14 @@ def create_intellectual_groups(baroqueproject):
 
 def check_intellectual_groups(baroqueproject):
     """
-    Check that intellectual groups are well-formed by:
-    (1) Check that each part number is consecutively numbered.
-    (2) Check that each part only has 6 files.
-    (3) Check that each part has exactly one of the 6 required file formats.
+    Make sure that intellectual groups are well-formed by:
+    (1) Checking that each part number is consecutively numbered.
+    (2) Checking that each part only has 6 files.
+    (3) Checking that each part has exactly one of the 6 required file formats.
     """
     items = create_intellectual_groups(baroqueproject)
 
     for item in items.keys():
-
         # Check that each of the part numbers is consecutive
         part_ids = []
         consecutive = True
@@ -209,6 +223,7 @@ def check_intellectual_groups(baroqueproject):
 
         part_ids.sort()
 
+        # NOTE: This logic does not work when files have the following format: 1234-SR-1-1-1.
         for n in range(len(part_ids)):
             if not part_ids[n].endswith(str(n + 1)):
                 consecutive = False
@@ -219,14 +234,15 @@ def check_intellectual_groups(baroqueproject):
         for part in items[item]:
             # Check that each part only has 6 files.
             if len(items[item][part]) > 6:
-                print("ERROR: There are", len(items[item][part]) - 6, "extra files in the", part, "part.")
+                print("ERROR: There are", len(items[item][part]) - 6, "extra files in the", part,
+                      "part, which consists of:", items[item][part])
 
             if len(items[item][part]) < 6:
-                print("ERROR: There are", 6 - len(items[item][part]), "missing files in the", part, "part.")
+                print("ERROR: There are", 6 - len(items[item][part]), "missing files in the", part,
+                      "part, which consists of:", items[item][part])
 
             if len(items[item][part]) == 6:
-
-                # Check that the part only has one of each of the required file formats.
+                # Check that the part only has one and only one of each of the required file formats.
                 count_formats = {"-am.wav": 0, "-am.wav.md5": 0, "-pm.wav": 0, "-pm.wav.md5": 0, ".mp3": 0,
                                  ".mp3.md5": 0}
 
@@ -238,9 +254,9 @@ def check_intellectual_groups(baroqueproject):
                 for format in count_formats.keys():
                     if count_formats[format] > 1:
                         print("ERROR: There are", count_formats[format] - 1, "extra", format, "files in the", part,
-                              "part.")
+                              "part:", count_formats)
                     if count_formats[format] < 1:
-                        print("ERROR: There is 1 missing", format, "file in the", part, "part.")
+                        print("ERROR: There is 1 missing", format, "file in the", part, "part:", count_formats)
 
 
 def validate_file(baroqueproject):
@@ -256,20 +272,12 @@ def validate_structure(baroqueproject, metadata_export):
     If the source directory is an item, "validate_file" on item-level.
     """
     if baroqueproject.source_type == "shipment":
-        if not os.path.exists(metadata_export):
-            print("ERROR: metadata_export does not exist")
-            sys.exit()
-        else:
-            levels = ["collections", "items"]
-            for level in levels:
-                validate_directory(baroqueproject, metadata_export, level)
+        levels = ["collections", "items"]
+        for level in levels:
+            validate_directory(baroqueproject, metadata_export, level)
 
     elif baroqueproject.source_type == "collection":
-        if not os.path.exists(metadata_export):
-            print("ERROR: metadata_export does not exist")
-            sys.exit()
-        else:
-            level = "items"
-            validate_directory(baroqueproject, metadata_export, level)
+        level = "items"
+        validate_directory(baroqueproject, metadata_export, level)
 
     validate_file(baroqueproject)
