@@ -1,5 +1,6 @@
 import csv
 import os
+import re
 import sys
 
 from openpyxl import load_workbook
@@ -180,6 +181,7 @@ def create_intellectual_groups(baroqueproject):
         }
     """
     part_file_types = ["md5", "mp3", "wav"]
+    part_name_regex = re.compile(r"\d+\-SR-\d+(\-\d+){1,}")
     items = {}
 
     for item in baroqueproject.items:
@@ -188,18 +190,16 @@ def create_intellectual_groups(baroqueproject):
                 for file in files:
 
                     # Isolate file names without extensions (e.g., "-am.wav").
-                    # NOTE: This section feels a little clunky.
-                    name = file.split(".")[0].split("-")
-                    if name[-1].lower() == "am" or name[-1].lower() == "pm":
-                        name = name[:-1]
-                    name = "-".join(name)
+                    name_match = part_name_regex.match(file)
+                    if name_match:
+                        name = name_match.group()
 
-                    # Create dictionary of intellectual groups
-                    if item["id"] not in items.keys():
-                        items[item["id"]] = {}
-                    if name not in items[item["id"]].keys():
-                        items[item["id"]][name] = []
-                    items[item["id"]][name].append(file)
+                        # Create dictionary of intellectual groups
+                        if item["id"] not in items.keys():
+                            items[item["id"]] = {}
+                        if name not in items[item["id"]].keys():
+                            items[item["id"]][name] = []
+                        items[item["id"]][name].append(file)
 
     return items
 
