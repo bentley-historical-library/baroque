@@ -55,6 +55,11 @@ def parse_metadata_export(metadata_export, level):
         for col in sheet["1"]:
             if col.value == "DigFile Calc":
                 target_col_letter = get_column_letter(col.column)
+
+        if target_col_letter == "":
+            print("ERROR: metadata export does not contain 'DigFile Calc' column")
+            sys.exit()
+
         # Set the range for rows (containing Item IDs) in the "DigFile Calc" column
         target_range = target_col_letter + "2:" + target_col_letter + str(sheet.max_row)
 
