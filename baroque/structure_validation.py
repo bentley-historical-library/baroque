@@ -73,22 +73,15 @@ def parse_metadata_export(metadata_export, level):
         print("ERROR: metadata export is unexpected file type")
         sys.exit()
 
-    # NOTE: Collection IDs are parsed from item IDs
     if level == "collections":
         for i in items_ids:
-            collection_id = i.split("-")[0]
+            collection_id = i.split("-")[0]  # NOTE: Collection IDs are parsed from item IDs
             if collection_id not in collection_ids:
                 collection_ids.append(collection_id)
         return collection_ids
 
     elif level == "items":
         return items_ids
-
-
-def compare_ids(set_a_ids, set_b_ids, level):
-    diff_ids = list(set(set_a_ids) - set(set_b_ids)) + list(set(set_b_ids) - set(set_a_ids))
-    if len(diff_ids) != 0:
-        print("ERROR: following " + level[:-1] + " ids do not match:", diff_ids)
 
 
 def check_empty_directory(directory_path):
@@ -117,7 +110,12 @@ def validate_directory(baroqueproject, metadata_export, level):
     process_ids, process_paths = parse_baroqueproject(baroqueproject, level)
     export_ids = parse_metadata_export(metadata_export, level)
 
-    compare_ids(process_ids, export_ids, level)
+    diff_process_ids = list(set(process_ids) - set(export_ids))
+    diff_export_ids = list(set(export_ids) - set(process_ids))
+    if len(diff_process_ids) != 0:
+        print("ERROR: following " + level[:-1] + " ids do not exist in metadata export:", diff_process_ids)
+    if len(diff_export_ids) != 0:
+        print("ERROR: following " + level[:-1] + " ids do not exist in directory:", diff_export_ids)
 
     for path in process_paths:
         check_empty_directory(path)
