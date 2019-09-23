@@ -104,13 +104,8 @@ class BaroqueProject(object):
         # Return the source directory level as "item", if the lists show the source directory
         # has files and does not have sub-directories
         if len(character_directory_files) > 0 and len(character_directory_dirs) == 0:
-            if all([filename.startswith(character_directory_name) for filename in character_directory_files]):
-                return "item"
-            '''
-            else:
-                print("SYSTEM ERROR: source_directory looks like an item but has unexpected file names")
-                sys.exit()
-            '''
+            return "item"
+
         elif len(character_directory_dirs) > 0:
             # Return the source directory level as "collection", if the lists show the source directory
             # has sub-directories and sub-directory names start with the source directory name
@@ -182,6 +177,7 @@ class BaroqueProject(object):
                 if extension in extensions:
                     files[format].append(file)
                     other = False
+                    break
 
             if other is True:
                 files["other"].append(file)
