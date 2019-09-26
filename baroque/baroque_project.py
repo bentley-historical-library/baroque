@@ -16,19 +16,26 @@ class BaroqueProject(object):
     An initial instantiation of this object might look like:
     {
         "source": source_directory,
-        "destination": destination_directory
+        "destination": destination_directory,
+        "errors": {
+            "checksum_validation" : [],
+            "file_format_validation" : [],
+            "mets_validation" : [],
+            "structure_validation" : [],
+            "wav_bext_chunk_validation" : []
+        },
         "shipment" : [
             {
             "id": "",
             "path": "",
             }
-        ]
+        ],
         "collections" : [
             {
             "id": "",
             "path": "",
             }
-        ]
+        ],
         "items": [
             {
             "id": "",
@@ -41,8 +48,7 @@ class BaroqueProject(object):
                 "md5": [],
                 "txt": [],
                 "other": []
-            },
-            "errors": []
+                },
             }
         ],
     }
@@ -50,10 +56,10 @@ class BaroqueProject(object):
 
     def __init__(self, source_directory, destination_directory):
         if not os.path.exists(source_directory):
-            print("ERROR: source_directory does not exist")
+            print("SYSTEM ERROR: source_directory does not exist")
             sys.exit()
         if not os.path.exists(destination_directory):
-            print("ERROR: destination_directory does not exist")
+            print("SYSTEM ERROR: destination_directory does not exist")
             sys.exit()
 
         self.source_directory = source_directory
@@ -64,13 +70,21 @@ class BaroqueProject(object):
         self.items = []
 
         self.source_type = self.characterize_source_directory()
-        print("SYSTEM: source_directory is {}".format(self.source_type))
+        print("SYSTEM REPORT: source_directory is {}".format(self.source_type))
         if self.source_type == "shipment":
             self.parse_shipment(source_directory)
         elif self.source_type == "collection":
             self.parse_collection(source_directory)
         elif self.source_type == "item":
             self.parse_item(source_directory)
+
+        self.errors = {
+            "checksum" : [],
+            "file_format" : [],
+            "mets" : [],
+            "structure" : [],
+            "wav_bext_chunk" : []
+        }
 
     def characterize_source_directory(self):
         """
@@ -90,13 +104,8 @@ class BaroqueProject(object):
         # Return the source directory level as "item", if the lists show the source directory
         # has files and does not have sub-directories
         if len(character_directory_files) > 0 and len(character_directory_dirs) == 0:
-            if all([filename.startswith(character_directory_name) for filename in character_directory_files]):
-                return "item"
-            '''
-            else:
-                print("ERROR: source_directory looks like an item but has unexpected file names")
-                sys.exit()
-            '''
+            return "item"
+
         elif len(character_directory_dirs) > 0:
             # Return the source directory level as "collection", if the lists show the source directory
             # has sub-directories and sub-directory names start with the source directory name
@@ -110,7 +119,7 @@ class BaroqueProject(object):
 
         # Exit when the source directory does not have files nor sub-directories
         else:
-            print("ERROR: source_directory is empty")
+            print("SYSTEM ERROR: source_directory is empty")
             sys.exit()
 
     def parse_shipment(self, shipment_directory):
@@ -168,6 +177,7 @@ class BaroqueProject(object):
                 if extension in extensions:
                     files[format].append(file)
                     other = False
+                    break
 
             if other is True:
                 files["other"].append(file)
@@ -177,3 +187,27 @@ class BaroqueProject(object):
             "path": item_directory,
             "files": files
         })
+
+
+    def add_errors(self, validation, error_type, path, id, error):
+        """
+        Add errors, organized by validation, to the BaroqueProject error attribute.
+        Each validation (e.g., structure) has its own list of errors.
+        Each error message is a dictionary with four key, value pairs:
+        - error_type : cladsification of the errror (either "requirement" or "warning")
+        - path : where the error occurs (e.g., "C:\\Users\\person\\Desktop\\2019103\\12345")
+        - id : what the error pertains to (e.g., "85429-SR-7")
+        - error : what the error is (e.g., "empty directory", "empty file")
+        """
+        self.validation = validation
+        self.error_type = error_type
+        self.path = path
+        self.id = id
+        self.error = error
+
+        self.errors[validation].append({
+                "error_type": error_type, # NOTE: Needs to be "requirement" or "warning".
+                "path": path,
+                "id": id,
+                "error": error
+            })

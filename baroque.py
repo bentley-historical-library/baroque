@@ -23,18 +23,35 @@ def main():
 
     project = BaroqueProject(args.source, args.destination)
     if args.structure:
+        validation = "structure"
+        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_structure(project, args.export)
+        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
     if args.mets:
+        validation = "mets"
+        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_mets(project)
+        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
     if args.wav:
+        validation = "wav bext chunk"
+        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_wav_bext_chunks(project)
+        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
     if args.files:
+        validation = "file format"
+        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_file_formats(project)
+        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
     if args.checksums:
+        validation = "checksum"
+        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_checksums(project)
+        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
 
     generate_reports(project)
 
 
 if __name__ == "__main__":
+    print("SYSTEM ACTIVITY: baroque starting")
     main()
+    print("SYSTEM ACTIVITY: baroque finished")
