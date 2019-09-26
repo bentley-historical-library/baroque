@@ -6,7 +6,7 @@ from datetime import datetime
 
 def generate_reports(baroqueproject):
     # Create the csv file name with the following structure: directory-YYYYMMDD-HHMMSS.csv.
-    date = datetime.now().strftime("%Y%H%m-%H%M%S")
+    date = datetime.now().strftime("%Y%m%d-%H%M%S")
     source = os.path.basename(baroqueproject.source_directory)
     csv_filename = source + "-" + date + ".csv"
     csv_filepath = os.path.join(baroqueproject.destination_directory, csv_filename)
