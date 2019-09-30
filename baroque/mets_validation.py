@@ -97,7 +97,23 @@ def parse_structural_map_section(item_id, path_to_mets, tree):
     """
     Parses structMap"""
     
-    pass
+    namespaces = {
+        'mets': 'http://www.loc.gov/METS/'
+    }
+
+    if not tree.xpath('/mets:mets/mets:structMap', namespaces=namespaces):
+        errors =[
+            'mets_validation',
+            'requirement',
+            path_to_mets,
+            item_id,
+            'mets xml has no structural map section'
+        ]
+        print('SYSTEM ERROR:' + str(errors))
+
+    else:
+        administrative_metadata = tree.xpath("/mets:mets/mets:structMap", namespaces=namespaces)[0]
+        return administrative_metadata
 
 def parse_item_mets(item):
     """
