@@ -4,17 +4,18 @@ from lxml import etree
 def parse_mets_header(item_id, path_to_mets, tree):
     """
     Validates metsHdr"""
+    
     namespaces = {
         'mets': 'http://www.loc.gov/METS/'
     }
     
-    if not tree.xpath("/mets:mets/mets:metsHdr", namespaces=namespaces):
+    if not tree.xpath('/mets:mets/mets:metsHdr', namespaces=namespaces):
         errors =[
-            "mets_validation",
-            "requirement",
+            'mets_validation',
+            'requirement',
             path_to_mets,
             item_id,
-            "mets xml has no mets header"
+            'mets xml has no mets header'
         ]
         print('SYSTEM ERROR:' + str(errors))
     
@@ -25,24 +26,48 @@ def parse_mets_header(item_id, path_to_mets, tree):
 def parse_descriptive_metadata(item_id, path_to_mets, tree):
     """
     Validates dmdSec"""
-    pass
+    
+    namespaces = {
+        'mets': 'http://www.loc.gov/METS/',
+        'dc': 'http://purl.org/dc/elements/1.1'
+    }
+
+    if not tree.xpath('/mets:mets/mets:dmdSec', namespaces=namespaces):
+        errors =[
+            'mets_validation',
+            'requirement',
+            path_to_mets,
+            item_id,
+            'mets xml has no descriptive metadata'
+        ]
+        print('SYSTEM ERROR:' + str(errors))
+
+    else:
+        descriptive_metadata = tree.xpath("/mets:mets/mets:dmdSec", namespaces=namespaces)[0]
+        return descriptive_metadata
 
 def parse_administrative_metadata(item_id, path_to_mets, tree):
     """
     Validates amdSec"""
+    
     pass
 
 def parse_file_section(item_id, path_to_mets, tree):
     """
     Validates fileSec"""
+    
     pass
 
 def parse_structural_map_section(item_id, path_to_mets, tree):
     """
     Validates structMap"""
+    
     pass
 
 def parse_item_mets(item):
+    """
+    Parses item METS"""
+
     path_to_item = item['path']
     item_id = item['id']
     mets = item['files']['xml'][0]
@@ -54,16 +79,18 @@ def parse_item_mets(item):
 def validate_mets(BaroqueProject):
     """ 
     Validates METS"""
+
     for item in BaroqueProject.items:
     
         # Assuming for now that validating directory and file structure would have picked this up
         if not item['files']['xml']:
             continue
 
-        item_id, path_to_mets, tree = parse_item_mets(item)
+        else:
+            item_id, path_to_mets, tree = parse_item_mets(item)
         
-        parse_mets_header(item_id, path_to_mets, tree)
-        parse_descriptive_metadata(item_id, path_to_mets, tree)
-        parse_administrative_metadata(item_id, path_to_mets, tree)
-        parse_file_section(item_id, path_to_mets, tree)
-        parse_structural_map_section(item_id, path_to_mets, tree)
+            parse_mets_header(item_id, path_to_mets, tree)
+            parse_descriptive_metadata(item_id, path_to_mets, tree)
+            parse_administrative_metadata(item_id, path_to_mets, tree)
+            parse_file_section(item_id, path_to_mets, tree)
+            parse_structural_map_section(item_id, path_to_mets, tree)
