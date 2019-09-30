@@ -5,8 +5,9 @@ from baroque.checksum_validation import validate_checksums
 from baroque.file_format_validation import validate_file_formats
 from baroque.mets_validation import validate_mets
 from baroque.report_generation import generate_reports
-from baroque.structure_validation import validate_structure
 from baroque.wav_bext_chunk_validation import validate_wav_bext_chunks
+
+from baroque.structure_validation import StructureValidator
 
 
 def main():
@@ -21,32 +22,21 @@ def main():
     parser.add_argument("-c", "--checksums", action="store_true", help="Validate checksums")
     args = parser.parse_args()
 
-    project = BaroqueProject(args.source, args.destination)
+    project = BaroqueProject(args.source, args.destination, args.export)
+
+    if (args.structure or args.mets) and not args.export:
+        print("SYSTEM ERROR: metadata export [-e] is required for structure and METS validation")
+
     if args.structure:
-        validation = "structure"
-        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
-        validate_structure(project, args.export)
-        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
+        StructureValidator(project).validate()
     if args.mets:
-        validation = "mets"
-        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_mets(project)
-        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
     if args.wav:
-        validation = "wav bext chunk"
-        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_wav_bext_chunks(project)
-        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
     if args.files:
-        validation = "file format"
-        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_file_formats(project)
-        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
     if args.checksums:
-        validation = "checksum"
-        print("SYSTEM ACTIVITY: {} {} validation".format("starting", validation))
         validate_checksums(project)
-        print("SYSTEM ACTIVITY: {} {} validation".format("ending", validation))
 
     generate_reports(project)
 
