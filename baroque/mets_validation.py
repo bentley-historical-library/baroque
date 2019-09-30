@@ -3,7 +3,7 @@ from lxml import etree
 
 def parse_mets_header(item_id, path_to_mets, tree):
     """
-    Validates metsHdr"""
+    Parses metsHdr"""
     
     namespaces = {
         'mets': 'http://www.loc.gov/METS/'
@@ -25,7 +25,7 @@ def parse_mets_header(item_id, path_to_mets, tree):
 
 def parse_descriptive_metadata(item_id, path_to_mets, tree):
     """
-    Validates dmdSec"""
+    Parses dmdSec"""
     
     namespaces = {
         'mets': 'http://www.loc.gov/METS/',
@@ -48,9 +48,28 @@ def parse_descriptive_metadata(item_id, path_to_mets, tree):
 
 def parse_administrative_metadata(item_id, path_to_mets, tree):
     """
-    Validates amdSec"""
+    Parses amdSec"""
     
-    pass
+    namespaces = {
+        'mets': 'http://www.loc.gov/METS/',
+        'aes': 'http://www.aes.org/audioObject',
+        'ph': 'http://www.aes.org/processhistory',
+        'mods': 'http://www.loc.gov/mods/v3',
+    }
+
+    if not tree.xpath('/mets:mets/mets:amdSec', namespaces=namespaces):
+        errors =[
+            'mets_validation',
+            'requirement',
+            path_to_mets,
+            item_id,
+            'mets xml has no administrative metadata'
+        ]
+        print('SYSTEM ERROR:' + str(errors))
+
+    else:
+        administrative_metadata = tree.xpath("/mets:mets/mets:amdSec", namespaces=namespaces)[0]
+        return administrative_metadata
 
 def parse_file_section(item_id, path_to_mets, tree):
     """
@@ -60,7 +79,7 @@ def parse_file_section(item_id, path_to_mets, tree):
 
 def parse_structural_map_section(item_id, path_to_mets, tree):
     """
-    Validates structMap"""
+    Parses structMap"""
     
     pass
 
@@ -89,8 +108,8 @@ def validate_mets(BaroqueProject):
         else:
             item_id, path_to_mets, tree = parse_item_mets(item)
         
-            parse_mets_header(item_id, path_to_mets, tree)
-            parse_descriptive_metadata(item_id, path_to_mets, tree)
-            parse_administrative_metadata(item_id, path_to_mets, tree)
-            parse_file_section(item_id, path_to_mets, tree)
-            parse_structural_map_section(item_id, path_to_mets, tree)
+            mets_header = parse_mets_header(item_id, path_to_mets, tree)
+            descriptive_metadata = parse_descriptive_metadata(item_id, path_to_mets, tree)
+            administrative_metadata = parse_administrative_metadata(item_id, path_to_mets, tree)
+            file_section = parse_file_section(item_id, path_to_mets, tree)
+            structural_map_section = parse_structural_map_section(item_id, path_to_mets, tree)
