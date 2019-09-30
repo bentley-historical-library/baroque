@@ -75,7 +75,23 @@ def parse_file_section(item_id, path_to_mets, tree):
     """
     Validates fileSec"""
     
-    pass
+    namespaces = {
+        'mets': 'http://www.loc.gov/METS/'
+    }
+
+    if not tree.xpath('/mets:mets/mets:fileSec', namespaces=namespaces):
+        errors =[
+            'mets_validation',
+            'requirement',
+            path_to_mets,
+            item_id,
+            'mets xml has no file section'
+        ]
+        print('SYSTEM ERROR:' + str(errors))
+
+    else:
+        administrative_metadata = tree.xpath("/mets:mets/mets:fileSec", namespaces=namespaces)[0]
+        return administrative_metadata
 
 def parse_structural_map_section(item_id, path_to_mets, tree):
     """
