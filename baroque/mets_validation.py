@@ -1,6 +1,10 @@
 import os
 from lxml import etree
 
+"""
+Note: Some namespaces referenced in the example XML files are not used in the METS file.
+Unless I'm mission some, these are: fits, fn, rights, marc21 and  tcf."""
+
 def parse_mets_header(item_id, path_to_mets, tree):
     """
     Parses metsHdr"""
