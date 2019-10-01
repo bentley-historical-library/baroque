@@ -5,9 +5,9 @@ from lxml import etree
 Note: Some namespaces referenced in the example XML files are not used in the METS file.
 Unless I'm mission some, these are: fits, fn, rights, marc21 and  tcf."""
 
-def parse_mets_header(item_id, path_to_mets, tree):
+def validate_mets_header(item_id, path_to_mets, tree):
     """
-    Parses metsHdr"""
+    Validates metsHdr section"""
     
     namespaces = {
         'mets': 'http://www.loc.gov/METS/'
@@ -27,9 +27,9 @@ def parse_mets_header(item_id, path_to_mets, tree):
         mets_header = tree.xpath("/mets:mets/mets:metsHdr", namespaces=namespaces)[0]
         return mets_header
 
-def parse_descriptive_metadata(item_id, path_to_mets, tree):
+def validate_descriptive_metadata(item_id, path_to_mets, tree):
     """
-    Parses dmdSec"""
+    Validates dmdSec section"""
     
     namespaces = {
         'mets': 'http://www.loc.gov/METS/',
@@ -50,9 +50,9 @@ def parse_descriptive_metadata(item_id, path_to_mets, tree):
         descriptive_metadata = tree.xpath("/mets:mets/mets:dmdSec", namespaces=namespaces)[0]
         return descriptive_metadata
 
-def parse_administrative_metadata(item_id, path_to_mets, tree):
+def validate_administrative_metadata(item_id, path_to_mets, tree):
     """
-    Parses amdSec"""
+    Validates amdSec section"""
     
     namespaces = {
         'mets': 'http://www.loc.gov/METS/',
@@ -75,9 +75,9 @@ def parse_administrative_metadata(item_id, path_to_mets, tree):
         administrative_metadata = tree.xpath("/mets:mets/mets:amdSec", namespaces=namespaces)[0]
         return administrative_metadata
 
-def parse_file_section(item_id, path_to_mets, tree):
+def validate_file_section(item_id, path_to_mets, tree):
     """
-    Validates fileSec"""
+    Validates fileSec section"""
     
     namespaces = {
         'mets': 'http://www.loc.gov/METS/'
@@ -97,9 +97,9 @@ def parse_file_section(item_id, path_to_mets, tree):
         administrative_metadata = tree.xpath("/mets:mets/mets:fileSec", namespaces=namespaces)[0]
         return administrative_metadata
 
-def parse_structural_map_section(item_id, path_to_mets, tree):
+def validate_structural_map_section(item_id, path_to_mets, tree):
     """
-    Parses structMap"""
+    Validates structMap section"""
     
     namespaces = {
         'mets': 'http://www.loc.gov/METS/'
@@ -144,8 +144,8 @@ def validate_mets(BaroqueProject):
         else:
             item_id, path_to_mets, tree = parse_item_mets(item)
         
-            mets_header = parse_mets_header(item_id, path_to_mets, tree)
-            descriptive_metadata = parse_descriptive_metadata(item_id, path_to_mets, tree)
-            administrative_metadata = parse_administrative_metadata(item_id, path_to_mets, tree)
-            file_section = parse_file_section(item_id, path_to_mets, tree)
-            structural_map_section = parse_structural_map_section(item_id, path_to_mets, tree)
+            validate_mets_header(item_id, path_to_mets, tree)
+            validate_descriptive_metadata(item_id, path_to_mets, tree)
+            validate_administrative_metadata(item_id, path_to_mets, tree)
+            validate_file_section(item_id, path_to_mets, tree)
+            validate_structural_map_section(item_id, path_to_mets, tree)
