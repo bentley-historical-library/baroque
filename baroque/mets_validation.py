@@ -1,9 +1,14 @@
 import os
 from lxml import etree
 
-"""
-Note: Some namespaces referenced in the example XML files are not used in the METS file.
-Unless I'm mission some, these are: fits, fn, rights, marc21 and  tcf."""
+# Note: Some namespaces referenced in the example XML files are not used in the METS file. Unless I'm missing some, these are: fits, fn, rights, marc21 and  tcf.
+namespaces = {
+    'mets': 'http://www.loc.gov/METS/',
+    'dc': 'http://purl.org/dc/elements/1.1',
+    'aes': 'http://www.aes.org/audioObject',
+    'ph': 'http://www.aes.org/processhistory',
+    'mods': 'http://www.loc.gov/mods/v3'
+}
 
 def check_tag_text(item_id, path_to_mets, tag, argument, value=None):
     if argument == "Is":
@@ -54,10 +59,6 @@ def validate_mets_header(item_id, path_to_mets, tree):
             <mets:name>University of Michigan, Bentley Historical Library</mets:name>
         </mets:agent>
     </mets:metsHdr>"""
-    
-    namespaces = {
-        'mets': 'http://www.loc.gov/METS/'
-    }
     
     if not tree.xpath('/mets:mets/mets:metsHdr', namespaces=namespaces):
         errors =[
@@ -112,11 +113,6 @@ def validate_descriptive_metadata(item_id, path_to_mets, tree):
     """
     Validates dmdSec section"""
     
-    namespaces = {
-        'mets': 'http://www.loc.gov/METS/',
-        'dc': 'http://purl.org/dc/elements/1.1'
-    }
-
     if not tree.xpath('/mets:mets/mets:dmdSec', namespaces=namespaces):
         errors =[
             'mets_validation',
@@ -133,13 +129,6 @@ def validate_administrative_metadata(item_id, path_to_mets, tree):
     """
     Validates amdSec section"""
     
-    namespaces = {
-        'mets': 'http://www.loc.gov/METS/',
-        'aes': 'http://www.aes.org/audioObject',
-        'ph': 'http://www.aes.org/processhistory',
-        'mods': 'http://www.loc.gov/mods/v3',
-    }
-
     if not tree.xpath('/mets:mets/mets:amdSec', namespaces=namespaces):
         errors =[
             'mets_validation',
@@ -155,10 +144,6 @@ def validate_administrative_metadata(item_id, path_to_mets, tree):
 def validate_file_section(item_id, path_to_mets, tree):
     """
     Validates fileSec section"""
-    
-    namespaces = {
-        'mets': 'http://www.loc.gov/METS/'
-    }
 
     if not tree.xpath('/mets:mets/mets:fileSec', namespaces=namespaces):
         errors =[
@@ -175,10 +160,6 @@ def validate_file_section(item_id, path_to_mets, tree):
 def validate_structural_map_section(item_id, path_to_mets, tree):
     """
     Validates structMap section"""
-    
-    namespaces = {
-        'mets': 'http://www.loc.gov/METS/'
-    }
 
     if not tree.xpath('/mets:mets/mets:structMap', namespaces=namespaces):
         errors =[
