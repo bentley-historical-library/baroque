@@ -59,100 +59,105 @@ class MetsValidator(BaroqueValidator):
             </mets:agent>
         </mets:metsHdr>"""
         
-        if not tree.xpath('/mets:mets/mets:metsHdr', namespaces=namespaces):
+        mets_header = tree.xpath("/mets:mets/mets:metsHdr", namespaces=namespaces)
+
+        if not mets_header:
             self.error(
                 path_to_mets,
                 item_id,
                 'mets xml has no mets header'
             )
         
-        # Check that metsHdr attribute CREATE DATE exists
-        mets_header = tree.xpath("/mets:mets/mets:metsHdr", namespaces=namespaces)[0]
-        self.check_tag_attrib(item_id, path_to_mets, mets_header, "Exists", "CREATEDATE")
+        else:
+            # Check that metsHdr attribute CREATE DATE exists
+            mets_header = mets_header[0]
+            self.check_tag_attrib(item_id, path_to_mets, mets_header, "Exists", "CREATEDATE")
 
-        # Check that there are three agent tags
-        agents = tree.xpath("/mets:mets/mets:metsHdr/mets:agent", namespaces=namespaces)
-        if len(agents) != 3:
-            self.error(
-                path_to_mets,
-                item_id,
-                'mets header has ' + str(len(agents)) + ' agent tags'
-            )
+            # Check that there are three agent tags
+            agents = mets_header.xpath("./mets:agent", namespaces=namespaces)
+            if len(agents) != 3:
+                self.error(
+                    path_to_mets,
+                    item_id,
+                    'mets header has ' + str(len(agents)) + ' agent tags'
+                )
 
-        # Check the MediaPreserve agent
-        mediapreserve_agent = tree.xpath("/mets:mets/mets:metsHdr/mets:agent", namespaces=namespaces)[0]
-        self.check_tag_attrib(item_id, path_to_mets, mediapreserve_agent, "Is", "ROLE", "OTHER") # Feels like I should check to see if this exists first
+            # Check the MediaPreserve agent
+            mediapreserve_agent = agents[0]
+            self.check_tag_attrib(item_id, path_to_mets, mediapreserve_agent, "Is", "ROLE", "OTHER") # Feels like I should check to see if this exists first
 
-        mediapreserve_name = [name for name in mediapreserve_agent][0]
-        self.check_tag_text(item_id, path_to_mets, mediapreserve_name, "Is", "The MediaPreserve")
-        
-        # Check the PRESERVATION Bentley agent
-        bhl_preservation_agent = tree.xpath("/mets:mets/mets:metsHdr/mets:agent", namespaces=namespaces)[1]
-        self.check_tag_attrib(item_id, path_to_mets, bhl_preservation_agent, "Is", "ROLE", "PRESERVATION")
-        self.check_tag_attrib(item_id, path_to_mets, bhl_preservation_agent, "Is", "TYPE", "ORGANIZATION")
+            mediapreserve_name = [name for name in mediapreserve_agent][0]
+            self.check_tag_text(item_id, path_to_mets, mediapreserve_name, "Is", "The MediaPreserve")
+            
+            # Check the PRESERVATION Bentley agent
+            bhl_preservation_agent = agents[1]
+            self.check_tag_attrib(item_id, path_to_mets, bhl_preservation_agent, "Is", "ROLE", "PRESERVATION")
+            self.check_tag_attrib(item_id, path_to_mets, bhl_preservation_agent, "Is", "TYPE", "ORGANIZATION")
 
-        bhl_preservation_name = [name for name in bhl_preservation_agent][0]
-        self.check_tag_text(item_id, path_to_mets, bhl_preservation_name, "Is", "University of Michigan, Bentley Historical Library")
+            bhl_preservation_name = [name for name in bhl_preservation_agent][0]
+            self.check_tag_text(item_id, path_to_mets, bhl_preservation_name, "Is", "University of Michigan, Bentley Historical Library")
 
-        # Check the DISSEMINATOR Bentley agent
-        bhl_disseminator_agent = tree.xpath("/mets:mets/mets:metsHdr/mets:agent", namespaces=namespaces)[2]
-        self.check_tag_attrib(item_id, path_to_mets, bhl_disseminator_agent, "Is", "ROLE", "DISSEMINATOR")
-        self.check_tag_attrib(item_id, path_to_mets, bhl_disseminator_agent, "Is", "TYPE", "ORGANIZATION")
+            # Check the DISSEMINATOR Bentley agent
+            bhl_disseminator_agent = agents[2]
+            self.check_tag_attrib(item_id, path_to_mets, bhl_disseminator_agent, "Is", "ROLE", "DISSEMINATOR")
+            self.check_tag_attrib(item_id, path_to_mets, bhl_disseminator_agent, "Is", "TYPE", "ORGANIZATION")
 
-        bhl_disseminator_name = [name for name in bhl_disseminator_agent][0]
-        self.check_tag_text(item_id, path_to_mets, bhl_disseminator_name, "Is", "University of Michigan, Bentley Historical Library")
+            bhl_disseminator_name = [name for name in bhl_disseminator_agent][0]
+            self.check_tag_text(item_id, path_to_mets, bhl_disseminator_name, "Is", "University of Michigan, Bentley Historical Library")
 
     def validate_descriptive_metadata(self, item_id, path_to_mets, tree):
         """
         Validates dmdSec section"""
+
+        descriptive_metadata = tree.xpath("/mets:mets/mets:dmdSec", namespaces=namespaces)
         
-        if not tree.xpath('/mets:mets/mets:dmdSec', namespaces=namespaces):
+        if not descriptive_metadata:
             self.error(
                 path_to_mets,
                 item_id,
                 'mets xml has no descriptive metadata'
             )
 
-        descriptive_metadata = tree.xpath("/mets:mets/mets:dmdSec", namespaces=namespaces)[0]
-
     def validate_administrative_metadata(self, item_id, path_to_mets, tree):
         """
         Validates amdSec section"""
+
+        administrative_metadata = tree.xpath("/mets:mets/mets:amdSec", namespaces=namespaces)
         
-        if not tree.xpath('/mets:mets/mets:amdSec', namespaces=namespaces):
+        if not administrative_metadata:
             self.error(
                 path_to_mets,
                 item_id,
                 'mets xml has no administrative metadata'
             )
 
-        administrative_metadata = tree.xpath("/mets:mets/mets:amdSec", namespaces=namespaces)[0]
 
     def validate_file_section(self, item_id, path_to_mets, tree):
         """
         Validates fileSec section"""
 
-        if not tree.xpath('/mets:mets/mets:fileSec', namespaces=namespaces):
+        file_section = tree.xpath("/mets:mets/mets:fileSec", namespaces=namespaces)
+
+        if not file_section:
             self.error(
                 path_to_mets,
                 item_id,
                 'mets xml has no file section'
             )
 
-        administrative_metadata = tree.xpath("/mets:mets/mets:fileSec", namespaces=namespaces)[0]
-
     def validate_structural_map_section(self, item_id, path_to_mets, tree):
         """
         Validates structMap section"""
 
-        if not tree.xpath('/mets:mets/mets:structMap', namespaces=namespaces):
+        structural_map_section = tree.xpath("/mets:mets/mets:structMap", namespaces=namespaces)
+
+        if not structural_map_section:
             self.error(
                 path_to_mets,
                 item_id,
                 'mets xml has no structural map section'
             )
 
-        stuctural_map_section = tree.xpath("/mets:mets/mets:structMap", namespaces=namespaces)[0]
 
     def parse_item_mets(self, item):
         """
