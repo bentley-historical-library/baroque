@@ -1,3 +1,5 @@
+from .baroque_validator import BaroqueValidator
+
 class WavBextChunkValidator(BaroqueValidator):
     def __init__(self, project):
         validation = "wav_bext_chunk"

@@ -1,3 +1,5 @@
+from .baroque_validator import BaroqueValidator
+
 class FileFormatValidator(BaroqueValidator):
     def __init__(self, project):
         validation = "file_format"
