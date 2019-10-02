@@ -1,13 +1,12 @@
 import argparse
 
 from baroque.baroque_project import BaroqueProject
-from baroque.checksum_validation import validate_checksums
-from baroque.file_format_validation import validate_file_formats
-from baroque.report_generation import generate_reports
-from baroque.wav_bext_chunk_validation import validate_wav_bext_chunks
-
+from baroque.checksum_validation import ChecksumValidator
+from baroque.file_format_validation import FileFormatValidator
 from baroque.mets_validation import MetsValidator
+from baroque.report_generation import generate_reports
 from baroque.structure_validation import StructureValidator
+from baroque.wav_bext_chunk_validation import WavBextChunkValidator
 
 
 def main():
@@ -32,11 +31,11 @@ def main():
     if args.mets:
         MetsValidator(project).validate()
     if args.wav:
-        validate_wav_bext_chunks(project)
+        WavBextChunkValidator(project).validate()
     if args.files:
-        validate_file_formats(project)
+        FileFormatValidator(project).validate()
     if args.checksums:
-        validate_checksums(project)
+        ChecksumValidator(project).validate()
 
     generate_reports(project)
 
