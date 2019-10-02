@@ -86,13 +86,7 @@ class BaroqueProject(object):
         elif self.source_type == "item":
             self.parse_item(source_directory)
 
-        self.errors = {
-            "checksum" : [],
-            "file_format" : [],
-            "mets" : [],
-            "structure" : [],
-            "wav_bext_chunk" : []
-        }
+        self.errors = {}
 
     def characterize_source_directory(self):
         """
@@ -270,6 +264,7 @@ class BaroqueProject(object):
         """
 
         self.errors[validation].append({
+                "validation": validation,
                 "error_type": error_type, # NOTE: Needs to be "requirement" or "warning".
                 "path": path,
                 "id": id,

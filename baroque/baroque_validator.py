@@ -3,6 +3,8 @@ class BaroqueValidator:
         self.validation = validation
         self.validator = validator
         self.project = project
+        if self.validation not in self.project.errors.keys():
+            project.errors[validation] = []
 
     def validate(self):
         print("SYSTEM ACTIVITY: starting {}".format(self.validation))
