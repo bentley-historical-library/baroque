@@ -219,6 +219,21 @@ class MetsValidator(BaroqueValidator):
 
         file_section = self.check_element_exists("/mets:mets/mets:fileSec")
 
+        file_groups = self.check_subelements_exist(file_section, "mets:fileGrp", expected=2)
+        if file_groups is not None:
+            expected_ids = ["audio-files", "media_images"]
+            found_ids = []
+            for file_group in file_groups:
+                file_group_id = file_group.attrib.get("ID")
+                found_ids.append(file_group_id)
+                if file_group_id == "audio-files":
+                    sub_file_groups = self.check_subelements_exist(file_group, "mets:fileGrp", expected=3)
+            if sorted(found_ids) != expected_ids:
+                self.error(
+                    self.path_to_mets,
+                    self.item_id,
+                    "mets xml fileGrp IDs {} do not match expected {}".format(found_ids, expected_ids)
+                )
 
     def validate_structural_map_section(self):
         """
