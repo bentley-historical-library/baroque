@@ -9,7 +9,8 @@ namespaces = {
     'dc': 'http://purl.org/dc/elements/1.1',
     'aes': 'http://www.aes.org/audioObject',
     'ph': 'http://www.aes.org/processhistory',
-    'mods': 'http://www.loc.gov/mods/v3'
+    'mods': 'http://www.loc.gov/mods/v3',
+    'xlink': 'http://www.w3.org/1999/xlink'
 }
 
 class MetsValidator(BaroqueValidator):
@@ -160,6 +161,8 @@ class MetsValidator(BaroqueValidator):
             if self.item_metadata:
                 mdWrap = self.check_subelement_exists(descriptive_metadata, "mets:mdWrap")
                 if mdWrap is not None:
+                    self.check_tag_attrib(mdWrap, "Is", "MDTYPE", "DC")
+                    self.check_tag_attrib(mdWrap, "Is", "LABEL", "Dublin Core Metadata")
                     xmlData = self.check_subelement_exists(mdWrap, "mets:xmlData")
                     if xmlData is not None:
                         dc_title = self.check_subelement_exists(xmlData, "dc:title")
@@ -187,6 +190,28 @@ class MetsValidator(BaroqueValidator):
 
         administrative_metadata = self.check_element_exists("/mets:mets/mets:amdSec")
 
+        audio_files = self.item_files["wav"] + self.item_files["mp3"]
+        expected_files = audio_files + self.item_files["txt"]
+        
+        techMDs = self.check_subelements_exist(administrative_metadata, "mets:techMD", expected=len(expected_files))
+        if techMDs is not None:
+            found_files = []
+            for techMD in techMDs:
+                if techMD.find("mets:mdRef", namespaces=namespaces) is None:
+                    primary_identifier_element = self.check_subelement_exists(techMD, "./mets:mdWrap/mets:xmlData/aes:audioObject/aes:primaryIdentifier")
+                    if primary_identifier_element is not None:
+                            found_files.append(primary_identifier_element.text)                    
+            if sorted(found_files) != sorted(audio_files):
+                self.error(
+                    self.path_to_mets,
+                    self.item_id,
+                    "audio filenames found in amdSec/techMDs do not match files found in directory"
+                )
+        
+        sourceMD = self.check_subelement_exists(administrative_metadata, "mets:sourceMD")
+        digiprovMD = self.check_subelement_exists(administrative_metadata, "mets:digiprovMD")
+
+
 
     def validate_file_section(self):
         """
@@ -210,6 +235,7 @@ class MetsValidator(BaroqueValidator):
         mets = item['files']['xml'][0]
         
         self.item_id = item['id']
+        self.item_files = item["files"]
         self.item_metadata = self.project.metadata["item_metadata"].get(self.item_id)
         self.path_to_mets = os.path.join(path_to_item, mets)
         try:
