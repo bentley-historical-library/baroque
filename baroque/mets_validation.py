@@ -118,6 +118,18 @@ class MetsValidator(BaroqueValidator):
                 'mets xml has no descriptive metadata'
             )
 
+        elif self.item_metadata:
+            descriptive_metadata = descriptive_metadata[0]
+            dc_metadata = descriptive_metadata.xpath("./mets:mdWrap/mets:xmlData", namespaces=namespaces)[0]
+            dc_title = dc_metadata.xpath("./dc:title", namespaces=namespaces)[0]
+            dc_relation = dc_metadata.xpath("./dc:relation", namespaces=namespaces)[0]
+            dc_identifier = dc_metadata.xpath("./dc:identifier", namespaces=namespaces)[0]
+
+            self.check_tag_text(dc_title, "Is", self.item_metadata["item_title"])
+            self.check_tag_text(dc_relation, "Is", self.item_metadata["collection_title"])
+            self.check_tag_text(dc_identifier, "Is", self.item_id)
+
+
     def validate_administrative_metadata(self):
         """
         Validates amdSec section"""
@@ -167,6 +179,7 @@ class MetsValidator(BaroqueValidator):
         mets = item['files']['xml'][0]
         
         self.item_id = item['id']
+        self.item_metadata = self.project.metadata["item_metadata"].get(self.item_id)
         self.path_to_mets = os.path.join(path_to_item, mets)
         self.tree = etree.parse(self.path_to_mets)
 
