@@ -18,32 +18,32 @@ class MetsValidator(BaroqueValidator):
         validator = self.validate_mets
         super().__init__(validation, validator, project)
 
-    def check_tag_text(self, item_id, path_to_mets, tag, argument, value=None):
+    def check_tag_text(self, tag, argument, value=None):
         if argument == "Is":
             if tag.text != value:
                 self.error(
-                    path_to_mets,
-                    item_id,
+                    self.path_to_mets,
+                    self.item_id,
                     tag.text + ' text does not equal ' + value + ' value in ' + tag.tag
                 )
 
-    def check_tag_attrib(self, item_id, path_to_mets, tag, argument, attribute, value=None):
+    def check_tag_attrib(self, tag, argument, attribute, value=None):
         if argument == "Exists": # Does Not Exist, Is, Is Not, Contains, Does Not Contain, Is Greater Than, Is At Least, Is Less Than
             if attribute not in tag.attrib:
                 self.error(
-                    path_to_mets,
-                    item_id,
+                    self.path_to_mets,
+                    self.item_id,
                     attribute + ' attribute does not exist in ' + tag.tag
                 )
         elif argument == "Is":
             if tag.attrib[attribute] != value:
                 self.error(
-                    path_to_mets,
-                    item_id,
+                    self.path_to_mets,
+                    self.item_id,
                     tag.attrib[attribute] + ' in ' + attribute + ' attribute does not equal ' + value + ' value in ' + tag.tag
                 )
 
-    def validate_mets_header(self, item_id, path_to_mets, tree):
+    def validate_mets_header(self):
         """
         Validates metsHdr section
 
@@ -59,102 +59,102 @@ class MetsValidator(BaroqueValidator):
             </mets:agent>
         </mets:metsHdr>"""
         
-        mets_header = tree.xpath("/mets:mets/mets:metsHdr", namespaces=namespaces)
+        mets_header = self.tree.xpath("/mets:mets/mets:metsHdr", namespaces=namespaces)
 
         if not mets_header:
             self.error(
-                path_to_mets,
-                item_id,
+                self.path_to_mets,
+                self.item_id,
                 'mets xml has no mets header'
             )
         
         else:
             # Check that metsHdr attribute CREATE DATE exists
             mets_header = mets_header[0]
-            self.check_tag_attrib(item_id, path_to_mets, mets_header, "Exists", "CREATEDATE")
+            self.check_tag_attrib(mets_header, "Exists", "CREATEDATE")
 
             # Check that there are three agent tags
             agents = mets_header.xpath("./mets:agent", namespaces=namespaces)
             if len(agents) != 3:
                 self.error(
-                    path_to_mets,
-                    item_id,
+                    self.path_to_mets,
+                    self.item_id,
                     'mets header has ' + str(len(agents)) + ' agent tags'
                 )
 
             # Check the MediaPreserve agent
             mediapreserve_agent = agents[0]
-            self.check_tag_attrib(item_id, path_to_mets, mediapreserve_agent, "Is", "ROLE", "OTHER") # Feels like I should check to see if this exists first
+            self.check_tag_attrib(mediapreserve_agent, "Is", "ROLE", "OTHER") # Feels like I should check to see if this exists first
 
             mediapreserve_name = [name for name in mediapreserve_agent][0]
-            self.check_tag_text(item_id, path_to_mets, mediapreserve_name, "Is", "The MediaPreserve")
+            self.check_tag_text(mediapreserve_name, "Is", "The MediaPreserve")
             
             # Check the PRESERVATION Bentley agent
             bhl_preservation_agent = agents[1]
-            self.check_tag_attrib(item_id, path_to_mets, bhl_preservation_agent, "Is", "ROLE", "PRESERVATION")
-            self.check_tag_attrib(item_id, path_to_mets, bhl_preservation_agent, "Is", "TYPE", "ORGANIZATION")
+            self.check_tag_attrib(bhl_preservation_agent, "Is", "ROLE", "PRESERVATION")
+            self.check_tag_attrib(bhl_preservation_agent, "Is", "TYPE", "ORGANIZATION")
 
             bhl_preservation_name = [name for name in bhl_preservation_agent][0]
-            self.check_tag_text(item_id, path_to_mets, bhl_preservation_name, "Is", "University of Michigan, Bentley Historical Library")
+            self.check_tag_text(bhl_preservation_name, "Is", "University of Michigan, Bentley Historical Library")
 
             # Check the DISSEMINATOR Bentley agent
             bhl_disseminator_agent = agents[2]
-            self.check_tag_attrib(item_id, path_to_mets, bhl_disseminator_agent, "Is", "ROLE", "DISSEMINATOR")
-            self.check_tag_attrib(item_id, path_to_mets, bhl_disseminator_agent, "Is", "TYPE", "ORGANIZATION")
+            self.check_tag_attrib(bhl_disseminator_agent, "Is", "ROLE", "DISSEMINATOR")
+            self.check_tag_attrib(bhl_disseminator_agent, "Is", "TYPE", "ORGANIZATION")
 
             bhl_disseminator_name = [name for name in bhl_disseminator_agent][0]
-            self.check_tag_text(item_id, path_to_mets, bhl_disseminator_name, "Is", "University of Michigan, Bentley Historical Library")
+            self.check_tag_text(bhl_disseminator_name, "Is", "University of Michigan, Bentley Historical Library")
 
-    def validate_descriptive_metadata(self, item_id, path_to_mets, tree):
+    def validate_descriptive_metadata(self):
         """
         Validates dmdSec section"""
 
-        descriptive_metadata = tree.xpath("/mets:mets/mets:dmdSec", namespaces=namespaces)
+        descriptive_metadata = self.tree.xpath("/mets:mets/mets:dmdSec", namespaces=namespaces)
         
         if not descriptive_metadata:
             self.error(
-                path_to_mets,
-                item_id,
+                self.path_to_mets,
+                self.item_id,
                 'mets xml has no descriptive metadata'
             )
 
-    def validate_administrative_metadata(self, item_id, path_to_mets, tree):
+    def validate_administrative_metadata(self):
         """
         Validates amdSec section"""
 
-        administrative_metadata = tree.xpath("/mets:mets/mets:amdSec", namespaces=namespaces)
+        administrative_metadata = self.tree.xpath("/mets:mets/mets:amdSec", namespaces=namespaces)
         
         if not administrative_metadata:
             self.error(
-                path_to_mets,
-                item_id,
+                self.path_to_mets,
+                self.item_id,
                 'mets xml has no administrative metadata'
             )
 
 
-    def validate_file_section(self, item_id, path_to_mets, tree):
+    def validate_file_section(self):
         """
         Validates fileSec section"""
 
-        file_section = tree.xpath("/mets:mets/mets:fileSec", namespaces=namespaces)
+        file_section = self.tree.xpath("/mets:mets/mets:fileSec", namespaces=namespaces)
 
         if not file_section:
             self.error(
-                path_to_mets,
-                item_id,
+                self.path_to_mets,
+                self.item_id,
                 'mets xml has no file section'
             )
 
-    def validate_structural_map_section(self, item_id, path_to_mets, tree):
+    def validate_structural_map_section(self):
         """
         Validates structMap section"""
 
-        structural_map_section = tree.xpath("/mets:mets/mets:structMap", namespaces=namespaces)
+        structural_map_section = self.tree.xpath("/mets:mets/mets:structMap", namespaces=namespaces)
 
         if not structural_map_section:
             self.error(
-                path_to_mets,
-                item_id,
+                self.path_to_mets,
+                self.item_id,
                 'mets xml has no structural map section'
             )
 
@@ -164,12 +164,11 @@ class MetsValidator(BaroqueValidator):
         Parses item METS"""
 
         path_to_item = item['path']
-        item_id = item['id']
         mets = item['files']['xml'][0]
-        path_to_mets = os.path.join(path_to_item, mets)
-        tree = etree.parse(path_to_mets)
         
-        return item_id, path_to_mets, tree
+        self.item_id = item['id']
+        self.path_to_mets = os.path.join(path_to_item, mets)
+        self.tree = etree.parse(self.path_to_mets)
 
     def validate_mets(self):
         """ 
@@ -182,10 +181,10 @@ class MetsValidator(BaroqueValidator):
                 continue
 
             else:
-                item_id, path_to_mets, tree = self.parse_item_mets(item)
+                self.parse_item_mets(item)
             
-                self.validate_mets_header(item_id, path_to_mets, tree)
-                self.validate_descriptive_metadata(item_id, path_to_mets, tree)
-                self.validate_administrative_metadata(item_id, path_to_mets, tree)
-                self.validate_file_section(item_id, path_to_mets, tree)
-                self.validate_structural_map_section(item_id, path_to_mets, tree)
+                self.validate_mets_header()
+                self.validate_descriptive_metadata()
+                self.validate_administrative_metadata()
+                self.validate_file_section()
+                self.validate_structural_map_section()
