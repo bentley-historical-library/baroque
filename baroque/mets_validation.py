@@ -56,13 +56,20 @@ class MetsValidator(BaroqueValidator):
         else:
             return elements[0]
     
-    def check_subelements_exist(self, element, subelement_path, expected=1):
+    def check_subelements_exist(self, element, subelement_path, expected=False):
         subelements = element.findall(subelement_path, namespaces=namespaces)
-        if len(subelements) != expected:
+        if expected and (len(subelements) != expected):
             self.error(
                 self.path_to_mets,
                 self.item_id,
                 "{} {} subelements found in {}, expected {}".format(len(subelements), subelement_path, element.tag, expected)
+            )
+            subelements = None
+        elif len(subelements) == 0:
+            self.error(
+                self.path_to_mets,
+                self.item_id,
+                "No {} subelements found in {}".format(subelement_path, element.tag)
             )
             subelements = None
 
@@ -85,7 +92,7 @@ class MetsValidator(BaroqueValidator):
         Validates root mets element"""
         mets_element = self.check_element_exists("/mets:mets")
 
-        if mets_element is not None:
+        if len(mets_element) > 0:
             mets_element_nsmap = mets_element.nsmap
             for ns, namespace in namespaces.items():
                 if not mets_element_nsmap.get(ns) == namespace:
@@ -118,7 +125,7 @@ class MetsValidator(BaroqueValidator):
         
         mets_header = self.check_element_exists("/mets:mets/mets:metsHdr")
 
-        if mets_header is not None:
+        if len(mets_header) > 0:
             # Check that metsHdr attribute CREATE DATE exists
             self.check_tag_attrib(mets_header, "Exists", "CREATEDATE")
 
@@ -157,7 +164,7 @@ class MetsValidator(BaroqueValidator):
 
         descriptive_metadata = self.check_element_exists("/mets:mets/mets:dmdSec")
 
-        if descriptive_metadata is not None:
+        if len(descriptive_metadata) > 0:
             if self.item_metadata:
                 mdWrap = self.check_subelement_exists(descriptive_metadata, "mets:mdWrap")
                 if mdWrap is not None:
@@ -190,26 +197,26 @@ class MetsValidator(BaroqueValidator):
 
         administrative_metadata = self.check_element_exists("/mets:mets/mets:amdSec")
 
-        audio_files = self.item_files["wav"] + self.item_files["mp3"]
-        expected_files = audio_files + self.item_files["txt"]
-        
-        techMDs = self.check_subelements_exist(administrative_metadata, "mets:techMD", expected=len(expected_files))
-        if techMDs is not None:
-            found_files = []
-            for techMD in techMDs:
-                if techMD.find("mets:mdRef", namespaces=namespaces) is None:
-                    primary_identifier_element = self.check_subelement_exists(techMD, "./mets:mdWrap/mets:xmlData/aes:audioObject/aes:primaryIdentifier")
-                    if primary_identifier_element is not None:
-                            found_files.append(primary_identifier_element.text)                    
-            if sorted(found_files) != sorted(audio_files):
-                self.error(
-                    self.path_to_mets,
-                    self.item_id,
-                    "audio filenames found in amdSec/techMDs do not match files found in directory"
-                )
-        
-        sourceMD = self.check_subelement_exists(administrative_metadata, "mets:sourceMD")
-        digiprovMD = self.check_subelement_exists(administrative_metadata, "mets:digiprovMD")
+        if len(administrative_metadata) > 0:
+            audio_files = self.item_files["wav"] + self.item_files["mp3"]
+            expected_files = audio_files + self.item_files["txt"]
+            techMDs = self.check_subelements_exist(administrative_metadata, "mets:techMD", expected=len(expected_files))
+            if techMDs is not None:
+                found_files = []
+                for techMD in techMDs:
+                    if techMD.find("mets:mdRef", namespaces=namespaces) is None:
+                        primary_identifier_element = self.check_subelement_exists(techMD, "./mets:mdWrap/mets:xmlData/aes:audioObject/aes:primaryIdentifier")
+                        if primary_identifier_element is not None:
+                                found_files.append(primary_identifier_element.text)                    
+                if sorted(found_files) != sorted(audio_files):
+                    self.error(
+                        self.path_to_mets,
+                        self.item_id,
+                        "audio filenames found in amdSec/techMDs do not match files found in directory"
+                    )
+            
+            sourceMD = self.check_subelement_exists(administrative_metadata, "mets:sourceMD")
+            digiprovMD = self.check_subelement_exists(administrative_metadata, "mets:digiprovMD")
 
 
 
@@ -219,28 +226,46 @@ class MetsValidator(BaroqueValidator):
 
         file_section = self.check_element_exists("/mets:mets/mets:fileSec")
 
-        file_groups = self.check_subelements_exist(file_section, "mets:fileGrp", expected=2)
-        if file_groups is not None:
-            expected_ids = ["audio-files", "media_images"]
-            found_ids = []
-            for file_group in file_groups:
-                file_group_id = file_group.attrib.get("ID")
-                found_ids.append(file_group_id)
-                if file_group_id == "audio-files":
-                    sub_file_groups = self.check_subelements_exist(file_group, "mets:fileGrp", expected=3)
-            if sorted(found_ids) != expected_ids:
-                self.error(
-                    self.path_to_mets,
-                    self.item_id,
-                    "mets xml fileGrp IDs {} do not match expected {}".format(found_ids, expected_ids)
-                )
+        if len(file_section) > 0:
+            file_groups = self.check_subelements_exist(file_section, "mets:fileGrp", expected=2)
+            if file_groups is not None:
+                expected_ids = ["audio-files", "media_images"]
+                found_ids = []
+                for file_group in file_groups:
+                    file_group_id = file_group.attrib.get("ID")
+                    found_ids.append(file_group_id)
+                    if file_group_id == "audio-files":
+                        sub_file_groups = self.check_subelements_exist(file_group, "mets:fileGrp", expected=3)
+                if sorted(found_ids) != expected_ids:
+                    self.error(
+                        self.path_to_mets,
+                        self.item_id,
+                        "mets xml fileGrp IDs {} do not match expected {}".format(found_ids, expected_ids)
+                    )
 
     def validate_structural_map_section(self):
         """
         Validates structMap section"""
 
         structural_map_section = self.check_element_exists("/mets:mets/mets:structMap")
-
+        if len(structural_map_section) > 0:
+            div_one = self.check_subelement_exists(structural_map_section, "mets:div")
+            if div_one is not None:
+                sub_divs = self.check_subelements_exist(div_one, "mets:div")
+                if sub_divs is not None:
+                    expected_files = self.item_files["wav"] + self.item_files["mp3"]
+                    file_pointers = []
+                    for sub_div in sub_divs:
+                        fptrs = sub_div.findall("mets:fptr", namespaces=namespaces)
+                        for fptr in fptrs:
+                            file_id = fptr.attrib.get("FILEID").replace("mdp.", "").strip()
+                            file_pointers.append(file_id)
+                    if sorted(file_pointers) != sorted(expected_files):
+                        self.error(
+                            self.path_to_mets,
+                            self.item_id,
+                            "mets structMap fileptr IDs {} do not match expected {}".format(file_pointers, expected_files)
+                        )
 
     def parse_item_mets(self, item):
         """
