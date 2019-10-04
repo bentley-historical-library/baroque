@@ -1,5 +1,9 @@
+import csv
 import os
 import sys
+
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 
 
 class BaroqueProject(object):
@@ -54,7 +58,7 @@ class BaroqueProject(object):
     }
     """
 
-    def __init__(self, source_directory, destination_directory):
+    def __init__(self, source_directory, destination_directory, metadata_export=None):
         if not os.path.exists(source_directory):
             print("SYSTEM ERROR: source_directory does not exist")
             sys.exit()
@@ -64,6 +68,10 @@ class BaroqueProject(object):
 
         self.source_directory = source_directory
         self.destination_directory = destination_directory
+        self.metadata_export = metadata_export
+
+        if self.metadata_export:
+            self.metadata = self.parse_metadata_export(metadata_export)
 
         self.shipment = []
         self.collections = []
@@ -78,13 +86,7 @@ class BaroqueProject(object):
         elif self.source_type == "item":
             self.parse_item(source_directory)
 
-        self.errors = {
-            "checksum" : [],
-            "file_format" : [],
-            "mets" : [],
-            "structure" : [],
-            "wav_bext_chunk" : []
-        }
+        self.errors = {}
 
     def characterize_source_directory(self):
         """
@@ -187,7 +189,68 @@ class BaroqueProject(object):
             "path": item_directory,
             "files": files
         })
+    
+    def _parse_collection_id(self, item_id):
+        return item_id.split("-")[0] # NOTE: Collection IDs are parsed from item IDs
+    
+    def _read_export(self, keys, rows, export_type):
+        for row in rows:
+            if export_type == ".csv":
+                values = row
+            elif export_type == ".xlsx":
+                values = [c.value for c in row]
+            yield dict(zip(keys, values))
 
+    def parse_metadata_export(self, metadata_export):
+        """
+        This function parses collection IDs or item IDs from the "DigFile Calc" column in the metadata export file.
+        The metadata export file can be either csv or xlsx.
+        """
+        if not os.path.exists(metadata_export):
+            print("SYSTEM ERROR: metadata export does not exist")
+            sys.exit()
+        
+        metadata = {"collections_ids": [], "items_ids": [], "item_metadata": {}}
+
+        item_id_column = "DigFile Calc"
+        collection_title_column = "COLLECTIONS::CollectionTitle"
+        item_title_column = "ItemTitle"
+
+        export_type = os.path.splitext(metadata_export)[1]
+        if export_type in [".csv", ".xlsx"]:
+            if export_type == ".csv":
+                with open(metadata_export, "r", newline="") as f:
+                    reader = csv.reader(f)
+                    keys = next(reader)
+                    rows = [row for row in reader]
+
+            elif export_type == ".xlsx":
+                workbook = load_workbook(metadata_export)
+                sheet = workbook.active
+                reader = sheet.rows
+                keys = [c.value for c in next(reader)]
+                rows = [row for row in reader]
+                workbook.close()
+            
+            for row in self._read_export(keys, rows, export_type):
+                item_id = row.get(item_id_column)
+                collection_id = self._parse_collection_id(item_id)
+                collection_title = row.get(collection_title_column)
+                item_title = row.get(item_title_column)
+                metadata["items_ids"].append(item_id)
+                if collection_id not in metadata["collections_ids"]:
+                    metadata["collections_ids"].append(collection_id)
+                metadata["item_metadata"][item_id] = {
+                    "collection_title": collection_title,
+                    "item_title": item_title
+                }
+
+        # File type: neither csv nor xlsx
+        else:
+            print("SYSTEM ERROR: metadata export is an unexpected file type")
+            sys.exit()
+
+        return metadata
 
     def add_errors(self, validation, error_type, path, id, error):
         """
@@ -199,13 +262,9 @@ class BaroqueProject(object):
         - id : what the error pertains to (e.g., "85429-SR-7")
         - error : what the error is (e.g., "empty directory", "empty file")
         """
-        self.validation = validation
-        self.error_type = error_type
-        self.path = path
-        self.id = id
-        self.error = error
 
         self.errors[validation].append({
+                "validation": validation,
                 "error_type": error_type, # NOTE: Needs to be "requirement" or "warning".
                 "path": path,
                 "id": id,
