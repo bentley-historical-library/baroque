@@ -53,22 +53,22 @@ class MetsValidator(BaroqueValidator):
                     tag.attrib.get(attribute) + ' in ' + attribute + ' attribute does not equal ' + value + ' value in ' + tag.tag
                 )
     
-    def check_element_exists(self, element):
-        elements = self.tree.xpath(element, namespaces=namespaces)
+    def check_element_exists(self, element_path):
+        elements = self.tree.xpath(element_path, namespaces=namespaces)
         element = None
         exists = True
         if len(elements) == 0:
             self.error(
                 self.path_to_mets,
                 self.item_id,
-                'mets xml has no element {}'.format(element)
+                'mets xml has no element {}'.format(element_path)
             )
             exists = False
         elif len(elements) > 1:
             self.error(
                 self.path_to_mets,
                 self.item_id,
-                "mets xml has multiple {} elements".format(element)
+                "mets xml has multiple {} elements".format(element_path)
             )
             exists = False
         else:
