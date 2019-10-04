@@ -1,4 +1,5 @@
 import os
+import re
 from lxml import etree
 
 from .baroque_validator import BaroqueValidator
@@ -19,13 +20,21 @@ class MetsValidator(BaroqueValidator):
         validator = self.validate_mets
         super().__init__(validation, validator, project)
 
+    def sanitize_text(self, text):
+        text = re.sub(r"\n", " ", text)
+        text = re.sub(r"\s+", " ", text)
+        text = text.strip()
+        return text
+
     def check_tag_text(self, tag, argument, value=None):
+        tag_text = self.sanitize_text(tag.text)
+        value = self.sanitize_text(value)
         if argument == "Is":
-            if tag.text != value:
+            if tag_text != value:
                 self.error(
                     self.path_to_mets,
                     self.item_id,
-                    tag.text + ' text does not equal ' + value + ' value in ' + tag.tag
+                    tag_text + ' text does not equal ' + value + ' value in ' + tag.tag
                 )
 
     def check_tag_attrib(self, tag, argument, attribute, value=None):
@@ -46,53 +55,67 @@ class MetsValidator(BaroqueValidator):
     
     def check_element_exists(self, element):
         elements = self.tree.xpath(element, namespaces=namespaces)
+        element = None
+        exists = True
         if len(elements) == 0:
             self.error(
                 self.path_to_mets,
                 self.item_id,
                 'mets xml has no element {}'.format(element)
             )
-            return elements
+            exists = False
+        elif len(elements) > 1:
+            self.error(
+                self.path_to_mets,
+                self.item_id,
+                "mets xml has multiple {} elements".format(element)
+            )
+            exists = False
         else:
-            return elements[0]
+            element = elements[0]
+        
+        return element, exists
     
     def check_subelements_exist(self, element, subelement_path, expected=False):
         subelements = element.findall(subelement_path, namespaces=namespaces)
+        exist = True
         if expected and (len(subelements) != expected):
             self.error(
                 self.path_to_mets,
                 self.item_id,
                 "{} {} subelements found in {}, expected {}".format(len(subelements), subelement_path, element.tag, expected)
             )
-            subelements = None
+            exist = False
         elif len(subelements) == 0:
             self.error(
                 self.path_to_mets,
                 self.item_id,
                 "No {} subelements found in {}".format(subelement_path, element.tag)
             )
-            subelements = None
+            exist = False
 
-        return subelements
+        return subelements, exist
 
     
     def check_subelement_exists(self, element, subelement_path):
         subelement = element.find(subelement_path, namespaces=namespaces)
+        exists = True
         if subelement is None:
             self.error(
                 self.path_to_mets,
                 self.item_id,
                 "subelement {} not found in {}".format(subelement_path, element.tag)
             )
+            exists = False
 
-        return subelement
+        return subelement, exists
 
     def validate_root_element(self):
         """
         Validates root mets element"""
-        mets_element = self.check_element_exists("/mets:mets")
+        mets_element, exists = self.check_element_exists("/mets:mets")
 
-        if len(mets_element) > 0:
+        if exists:
             mets_element_nsmap = mets_element.nsmap
             for ns, namespace in namespaces.items():
                 if not mets_element_nsmap.get(ns) == namespace:
@@ -123,21 +146,21 @@ class MetsValidator(BaroqueValidator):
             </mets:agent>
         </mets:metsHdr>"""
         
-        mets_header = self.check_element_exists("/mets:mets/mets:metsHdr")
+        mets_header, exists = self.check_element_exists("/mets:mets/mets:metsHdr")
 
-        if len(mets_header) > 0:
+        if exists:
             # Check that metsHdr attribute CREATE DATE exists
             self.check_tag_attrib(mets_header, "Exists", "CREATEDATE")
 
             # Check that there are three agent tags
-            agents = self.check_subelements_exist(mets_header, "mets:agent", expected=3)
-            if agents is not None:
+            agents, exist = self.check_subelements_exist(mets_header, "mets:agent", expected=3)
+            if exist:
                 # Check the MediaPreserve agent
                 mediapreserve_agent = agents[0]
                 self.check_tag_attrib(mediapreserve_agent, "Is", "ROLE", "OTHER") # Feels like I should check to see if this exists first
 
-                mediapreserve_name = self.check_subelement_exists(mediapreserve_agent, "mets:name")
-                if mediapreserve_name is not None:
+                mediapreserve_name, exists = self.check_subelement_exists(mediapreserve_agent, "mets:name")
+                if exists:
                     self.check_tag_text(mediapreserve_name, "Is", "The MediaPreserve")
                 
                 # Check the PRESERVATION Bentley agent
@@ -145,8 +168,8 @@ class MetsValidator(BaroqueValidator):
                 self.check_tag_attrib(bhl_preservation_agent, "Is", "ROLE", "PRESERVATION")
                 self.check_tag_attrib(bhl_preservation_agent, "Is", "TYPE", "ORGANIZATION")
 
-                bhl_preservation_name = self.check_subelement_exists(bhl_preservation_agent, "mets:name")
-                if bhl_preservation_name is not None:
+                bhl_preservation_name, exists = self.check_subelement_exists(bhl_preservation_agent, "mets:name")
+                if exists:
                     self.check_tag_text(bhl_preservation_name, "Is", "University of Michigan, Bentley Historical Library")
 
                 # Check the DISSEMINATOR Bentley agent
@@ -154,34 +177,34 @@ class MetsValidator(BaroqueValidator):
                 self.check_tag_attrib(bhl_disseminator_agent, "Is", "ROLE", "DISSEMINATOR")
                 self.check_tag_attrib(bhl_disseminator_agent, "Is", "TYPE", "ORGANIZATION")
 
-                bhl_disseminator_name = self.check_subelement_exists(bhl_disseminator_agent, "mets:name")
-                if bhl_disseminator_name is not None:
+                bhl_disseminator_name, exists = self.check_subelement_exists(bhl_disseminator_agent, "mets:name")
+                if exists:
                     self.check_tag_text(bhl_disseminator_name, "Is", "University of Michigan, Bentley Historical Library")
 
     def validate_descriptive_metadata(self):
         """
         Validates dmdSec section"""
 
-        descriptive_metadata = self.check_element_exists("/mets:mets/mets:dmdSec")
+        descriptive_metadata, exists = self.check_element_exists("/mets:mets/mets:dmdSec")
 
-        if len(descriptive_metadata) > 0:
+        if exists:
             if self.item_metadata:
-                mdWrap = self.check_subelement_exists(descriptive_metadata, "mets:mdWrap")
-                if mdWrap is not None:
+                mdWrap, exists = self.check_subelement_exists(descriptive_metadata, "mets:mdWrap")
+                if exists:
                     self.check_tag_attrib(mdWrap, "Is", "MDTYPE", "DC")
                     self.check_tag_attrib(mdWrap, "Is", "LABEL", "Dublin Core Metadata")
-                    xmlData = self.check_subelement_exists(mdWrap, "mets:xmlData")
-                    if xmlData is not None:
-                        dc_title = self.check_subelement_exists(xmlData, "dc:title")
-                        if dc_title is not None:
+                    xmlData, exists = self.check_subelement_exists(mdWrap, "mets:xmlData")
+                    if exists:
+                        dc_title, exists = self.check_subelement_exists(xmlData, "dc:title")
+                        if exists:
                             self.check_tag_text(dc_title, "Is", self.item_metadata["item_title"])
                         
-                        dc_relation = self.check_subelement_exists(xmlData, "dc:relation")
-                        if dc_relation is not None:
+                        dc_relation, exists = self.check_subelement_exists(xmlData, "dc:relation")
+                        if exists:
                             self.check_tag_text(dc_relation, "Is", self.item_metadata["collection_title"])
                         
-                        dc_identifier = self.check_subelement_exists(xmlData, "dc:identifier")
-                        if dc_identifier is not None:
+                        dc_identifier, exists = self.check_subelement_exists(xmlData, "dc:identifier")
+                        if exists:
                             self.check_tag_text(dc_identifier, "Is", self.item_id)
             else:
                 self.warn(
@@ -195,19 +218,19 @@ class MetsValidator(BaroqueValidator):
         """
         Validates amdSec section"""
 
-        administrative_metadata = self.check_element_exists("/mets:mets/mets:amdSec")
+        administrative_metadata, exists = self.check_element_exists("/mets:mets/mets:amdSec")
 
-        if len(administrative_metadata) > 0:
+        if exists:
             audio_files = self.item_files["wav"] + self.item_files["mp3"]
             expected_files = audio_files + self.item_files["txt"]
-            techMDs = self.check_subelements_exist(administrative_metadata, "mets:techMD", expected=len(expected_files))
-            if techMDs is not None:
+            techMDs, exist = self.check_subelements_exist(administrative_metadata, "mets:techMD", expected=len(expected_files))
+            if exist:
                 found_files = []
                 for techMD in techMDs:
                     if techMD.find("mets:mdRef", namespaces=namespaces) is None:
-                        primary_identifier_element = self.check_subelement_exists(techMD, "./mets:mdWrap/mets:xmlData/aes:audioObject/aes:primaryIdentifier")
-                        if primary_identifier_element is not None:
-                                found_files.append(primary_identifier_element.text)                    
+                        primary_identifier_element, exists = self.check_subelement_exists(techMD, "./mets:mdWrap/mets:xmlData/aes:audioObject/aes:primaryIdentifier")
+                        if exists:
+                            found_files.append(primary_identifier_element.text)                    
                 if sorted(found_files) != sorted(audio_files):
                     self.error(
                         self.path_to_mets,
@@ -215,8 +238,8 @@ class MetsValidator(BaroqueValidator):
                         "audio filenames found in amdSec/techMDs do not match files found in directory"
                     )
             
-            sourceMD = self.check_subelement_exists(administrative_metadata, "mets:sourceMD")
-            digiprovMD = self.check_subelement_exists(administrative_metadata, "mets:digiprovMD")
+            sourceMD, _ = self.check_subelement_exists(administrative_metadata, "mets:sourceMD")
+            digiprovMD, _ = self.check_subelement_exists(administrative_metadata, "mets:digiprovMD")
 
 
 
@@ -224,18 +247,17 @@ class MetsValidator(BaroqueValidator):
         """
         Validates fileSec section"""
 
-        file_section = self.check_element_exists("/mets:mets/mets:fileSec")
-
-        if len(file_section) > 0:
-            file_groups = self.check_subelements_exist(file_section, "mets:fileGrp", expected=2)
-            if file_groups is not None:
+        file_section, exists = self.check_element_exists("/mets:mets/mets:fileSec")
+        if exists:
+            file_groups, exist = self.check_subelements_exist(file_section, "mets:fileGrp", expected=2)
+            if exist:
                 expected_ids = ["audio-files", "media_images"]
                 found_ids = []
                 for file_group in file_groups:
                     file_group_id = file_group.attrib.get("ID")
                     found_ids.append(file_group_id)
                     if file_group_id == "audio-files":
-                        sub_file_groups = self.check_subelements_exist(file_group, "mets:fileGrp", expected=3)
+                        sub_file_groups, _ = self.check_subelements_exist(file_group, "mets:fileGrp", expected=3)
                 if sorted(found_ids) != expected_ids:
                     self.error(
                         self.path_to_mets,
@@ -247,12 +269,12 @@ class MetsValidator(BaroqueValidator):
         """
         Validates structMap section"""
 
-        structural_map_section = self.check_element_exists("/mets:mets/mets:structMap")
-        if len(structural_map_section) > 0:
-            div_one = self.check_subelement_exists(structural_map_section, "mets:div")
-            if div_one is not None:
-                sub_divs = self.check_subelements_exist(div_one, "mets:div")
-                if sub_divs is not None:
+        structural_map_section, exists = self.check_element_exists("/mets:mets/mets:structMap")
+        if exists:
+            div_one, exists = self.check_subelement_exists(structural_map_section, "mets:div")
+            if exists:
+                sub_divs, exist = self.check_subelements_exist(div_one, "mets:div")
+                if exist:
                     expected_files = self.item_files["wav"] + self.item_files["mp3"]
                     file_pointers = []
                     for sub_div in sub_divs:
