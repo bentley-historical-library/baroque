@@ -212,6 +212,8 @@ class MetsValidator(BaroqueValidator):
                             self.check_tag_text(dc_date, "Is", self.item_metadata["item_date"])
 
                         dc_format, exists = self.check_subelement_exists(xmlData, "dc:format")
+
+                        dc_format_extent, exists = self.check_subelements_exist(xmlData, "dc:format.extent")
             else:
                 self.warn(
                     self.path_to_mets,
