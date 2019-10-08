@@ -102,9 +102,7 @@ class MetsValidator(BaroqueValidator):
         if metadata_date == "Undated" and mets_date == "undated":
             pass
         # Trying to get around character encoding issues at the end of dates discovered during testing
-        if dateparser.parse(metadata_date) == dateparser.parse(mets_date) or dateparser.parse(metadata_date[:-1]) == dateparser.parse(mets_date):
-            pass
-        else:
+        if dateparser.parse(metadata_date) != dateparser.parse(mets_date) and dateparser.parse(metadata_date[:-1]) != dateparser.parse(mets_date):
             self.error(
                     self.path_to_mets,
                     self.item_id,
