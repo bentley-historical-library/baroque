@@ -1,6 +1,7 @@
 import os
 import re
 from lxml import etree
+import dateparser
 
 from .baroque_validator import BaroqueValidator
 
@@ -95,6 +96,16 @@ class MetsValidator(BaroqueValidator):
             exist = False
 
         return subelements, exist
+
+    def check_dates(self, metadata_date, mets_date):
+        if metadata_date == "Undated" and mets_date == "undated":
+            pass
+        if dateparser.parse(metadata_date) != dateparser.parse(mets_date):
+            self.error(
+                    self.path_to_mets,
+                    self.item_id,
+                    metadata_date + ' date in metadata does not equal ' + mets_date + ' date in mets'
+                )
 
     
     def check_subelement_exists(self, element, subelement_path):
@@ -209,7 +220,7 @@ class MetsValidator(BaroqueValidator):
 
                         dc_date, exists = self.check_subelement_exists(xmlData, "dc:date")
                         if exists:
-                            self.check_tag_text(dc_date, "Is", self.item_metadata["item_date"])
+                            self.check_dates(self.item_metadata["item_date"], dc_date.text)
 
                         dc_format, exists = self.check_subelement_exists(xmlData, "dc:format")
 
