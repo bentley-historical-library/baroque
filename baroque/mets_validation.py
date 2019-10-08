@@ -98,14 +98,18 @@ class MetsValidator(BaroqueValidator):
         return subelements, exist
 
     def check_dates(self, metadata_date, mets_date):
+        metadata_date = self.sanitize_text(metadata_date)
         if metadata_date == "Undated" and mets_date == "undated":
             pass
-        if dateparser.parse(metadata_date) != dateparser.parse(mets_date):
+        # Trying to get around character encoding issues at the end of dates discovered during testing
+        if dateparser.parse(metadata_date) == dateparser.parse(mets_date) or dateparser.parse(metadata_date[:-1]) == dateparser.parse(mets_date):
+            pass
+        else:
             self.error(
                     self.path_to_mets,
                     self.item_id,
                     metadata_date + ' date in metadata does not equal ' + mets_date + ' date in mets'
-                )
+            )
 
     
     def check_subelement_exists(self, element, subelement_path):
