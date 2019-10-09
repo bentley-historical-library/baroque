@@ -215,6 +215,7 @@ class BaroqueProject(object):
         item_id_column = "DigFile Calc"
         collection_title_column = "COLLECTIONS::CollectionTitle"
         item_title_column = "ItemTitle"
+        item_date_column = "ItemDate"
 
         export_type = os.path.splitext(metadata_export)[1]
         if export_type in [".csv", ".xlsx"]:
@@ -237,12 +238,14 @@ class BaroqueProject(object):
                 collection_id = self._parse_collection_id(item_id)
                 collection_title = row.get(collection_title_column)
                 item_title = row.get(item_title_column)
+                item_date = row.get(item_date_column)
                 metadata["items_ids"].append(item_id)
                 if collection_id not in metadata["collections_ids"]:
                     metadata["collections_ids"].append(collection_id)
                 metadata["item_metadata"][item_id] = {
                     "collection_title": collection_title,
-                    "item_title": item_title
+                    "item_title": item_title,
+                    "item_date": item_date
                 }
 
         # File type: neither csv nor xlsx
