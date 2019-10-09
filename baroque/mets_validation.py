@@ -22,10 +22,13 @@ class MetsValidator(BaroqueValidator):
         super().__init__(validation, validator, project)
 
     def sanitize_text(self, text):
-        text = re.sub(r"\n", " ", text)
-        text = re.sub(r"\s+", " ", text)
-        text = text.strip()
-        return text
+        if text is None:
+            return ""
+        else:
+            text = re.sub(r"\n", " ", text)
+            text = re.sub(r"\s+", " ", text)
+            text = text.strip()
+            return text
 
     def check_tag_text(self, tag, argument, value=None):
         tag_text = self.sanitize_text(tag.text)
@@ -38,21 +41,36 @@ class MetsValidator(BaroqueValidator):
                     tag_text + ' text does not equal ' + value + ' value in ' + tag.tag
                 )
 
-    def check_tag_attrib(self, tag, argument, attribute, value=None):
+    def check_tag_attrib(self, tag, attribute, argument, value=None):
         if argument == "Exists": # Does Not Exist, Is, Is Not, Contains, Does Not Contain, Is Greater Than, Is At Least, Is Less Than
-            if attribute not in tag.attrib:
-                self.error(
-                    self.path_to_mets,
-                    self.item_id,
-                    attribute + ' attribute does not exist in ' + tag.tag
-                )
+            self.check_tag_attrib_exists(tag, attribute)
         elif argument == "Is":
-            if tag.attrib.get(attribute) != value:
-                self.error(
-                    self.path_to_mets,
-                    self.item_id,
-                    tag.attrib.get(attribute) + ' in ' + attribute + ' attribute does not equal ' + value + ' value in ' + tag.tag
-                )
+            # checking if the attribute equals a certain value requires first checking that the attribute exists
+            exists = self.check_tag_attrib_exists(tag, attribute)
+            if exists:
+                self.check_tag_attrib_equals(tag, attribute, value)
+        else:
+            print("unsupported argument " + argument + " for check_tag_attrib")
+            sys.exit()
+    
+    def check_tag_attrib_exists(self, tag, attribute):
+        exists = True
+        if attribute not in tag.attrib:
+            self.error(
+                self.path_to_mets,
+                self.item_id,
+                attribute + ' attribute does not exists in ' + tag.tag
+            )
+            exists = False
+        return exists
+    
+    def check_tag_attrib_equals(self, tag, attribute, value):
+        if tag.attrib.get(attribute) != value:
+            self.error(
+                self.path_to_mets,
+                self.item_id,
+                tag.attrib.get(attribute) + ' in ' + attribute + ' attribute does not equal ' + value + ' value in ' + tag.tag
+            )
     
     def check_element_exists(self, element_path):
         elements = self.tree.xpath(element_path, namespaces=namespaces)
@@ -106,7 +124,7 @@ class MetsValidator(BaroqueValidator):
             self.error(
                     self.path_to_mets,
                     self.item_id,
-                    metadata_date + ' date in metadata does not equal ' + mets_date + ' date in mets'
+                    metadata_date + ' date in metadata export does not equal ' + mets_date + ' date in mets'
             )
 
     
@@ -138,10 +156,8 @@ class MetsValidator(BaroqueValidator):
                         "mets xml is missing the following namespace: {}:{}".format(ns, namespace)
                     )
             
-            self.check_tag_attrib(mets_element, "Exists", "OBJID")
-            self.check_tag_attrib(mets_element, "Is", "OBJID", self.item_id)
-            self.check_tag_attrib(mets_element, "Exists", "TYPE")
-            self.check_tag_attrib(mets_element, "Is", "AUDIO RECORDING") # Note: this assumes BAroQUe will only be used for audio QC
+            self.check_tag_attrib(mets_element, "OBJID", "Is", self.item_id)
+            self.check_tag_attrib(mets_element, "TYPE", "Is", "AUDIO RECORDING") # Note: this assumes BAroQUe will only be used for audio QC
 
     def validate_mets_header(self):
         """
@@ -163,14 +179,14 @@ class MetsValidator(BaroqueValidator):
 
         if exists:
             # Check that metsHdr attribute CREATE DATE exists
-            self.check_tag_attrib(mets_header, "Exists", "CREATEDATE")
+            self.check_tag_attrib(mets_header, "CREATEDATE", "Exists")
 
             # Check that there are three agent tags
             agents, exist = self.check_subelements_exist(mets_header, "mets:agent", expected=3)
             if exist:
                 # Check the MediaPreserve agent
                 mediapreserve_agent = agents[0]
-                self.check_tag_attrib(mediapreserve_agent, "Is", "ROLE", "OTHER") # Feels like I should check to see if this exists first
+                self.check_tag_attrib(mediapreserve_agent, "ROLE", "Is","OTHER")
 
                 mediapreserve_name, exists = self.check_subelement_exists(mediapreserve_agent, "mets:name")
                 if exists:
@@ -178,8 +194,8 @@ class MetsValidator(BaroqueValidator):
                 
                 # Check the PRESERVATION Bentley agent
                 bhl_preservation_agent = agents[1]
-                self.check_tag_attrib(bhl_preservation_agent, "Is", "ROLE", "PRESERVATION")
-                self.check_tag_attrib(bhl_preservation_agent, "Is", "TYPE", "ORGANIZATION")
+                self.check_tag_attrib(bhl_preservation_agent, "ROLE", "Is", "PRESERVATION")
+                self.check_tag_attrib(bhl_preservation_agent, "TYPE", "Is", "ORGANIZATION")
 
                 bhl_preservation_name, exists = self.check_subelement_exists(bhl_preservation_agent, "mets:name")
                 if exists:
@@ -187,8 +203,8 @@ class MetsValidator(BaroqueValidator):
 
                 # Check the DISSEMINATOR Bentley agent
                 bhl_disseminator_agent = agents[2]
-                self.check_tag_attrib(bhl_disseminator_agent, "Is", "ROLE", "DISSEMINATOR")
-                self.check_tag_attrib(bhl_disseminator_agent, "Is", "TYPE", "ORGANIZATION")
+                self.check_tag_attrib(bhl_disseminator_agent, "ROLE", "Is", "DISSEMINATOR")
+                self.check_tag_attrib(bhl_disseminator_agent, "TYPE", "Is", "ORGANIZATION")
 
                 bhl_disseminator_name, exists = self.check_subelement_exists(bhl_disseminator_agent, "mets:name")
                 if exists:
@@ -204,25 +220,47 @@ class MetsValidator(BaroqueValidator):
             if self.item_metadata:
                 mdWrap, exists = self.check_subelement_exists(descriptive_metadata, "mets:mdWrap")
                 if exists:
-                    self.check_tag_attrib(mdWrap, "Is", "MDTYPE", "DC")
-                    self.check_tag_attrib(mdWrap, "Is", "LABEL", "Dublin Core Metadata")
+                    self.check_tag_attrib(mdWrap, "MDTYPE", "Is", "DC")
+                    self.check_tag_attrib(mdWrap, "LABEL", "Is", "Dublin Core Metadata")
                     xmlData, exists = self.check_subelement_exists(mdWrap, "mets:xmlData")
                     if exists:
-                        dc_title, exists = self.check_subelement_exists(xmlData, "dc:title")
-                        if exists:
-                            self.check_tag_text(dc_title, "Is", self.item_metadata["item_title"])
+
+                        if self.item_metadata.get("item_title"):
+                            dc_title, exists = self.check_subelement_exists(xmlData, "dc:title")
+                            if exists:
+                                self.check_tag_text(dc_title, "Is", self.item_metadata["item_title"])
+                        else:
+                            self.warn(
+                                self.path_to_mets,
+                                self.item_id,
+                                "item title not found in metadata export spreadsheet to validate against mets xml"
+                            )
                         
-                        dc_relation, exists = self.check_subelement_exists(xmlData, "dc:relation")
-                        if exists:
-                            self.check_tag_text(dc_relation, "Is", self.item_metadata["collection_title"])
+                        if self.item_metadata.get("collection_title"):
+                            dc_relation, exists = self.check_subelement_exists(xmlData, "dc:relation")
+                            if exists:
+                                self.check_tag_text(dc_relation, "Is", self.item_metadata["collection_title"])
+                        else:
+                            self.warn(
+                                self.path_to_mets,
+                                self.item_id,
+                                "collection title not found in metadata export spreadsheet to validate against mets xml"
+                            )
                         
                         dc_identifier, exists = self.check_subelement_exists(xmlData, "dc:identifier")
                         if exists:
                             self.check_tag_text(dc_identifier, "Is", self.item_id)
-
-                        dc_date, exists = self.check_subelement_exists(xmlData, "dc:date")
-                        if exists:
-                            self.check_dates(self.item_metadata["item_date"], dc_date.text)
+                        
+                        if self.item_metadata.get("item_date"):
+                            dc_date, exists = self.check_subelement_exists(xmlData, "dc:date")
+                            if exists:
+                                self.check_dates(self.item_metadata["item_date"], dc_date.text)
+                        else:
+                            self.warn(
+                                self.path_to_mets,
+                                self.item_id,
+                                "item date not found in metadata export spreadsheet to validate against mets xml"
+                            )
 
                         dc_format, exists = self.check_subelement_exists(xmlData, "dc:format")
 
@@ -231,7 +269,7 @@ class MetsValidator(BaroqueValidator):
                 self.warn(
                     self.path_to_mets,
                     self.item_id,
-                    "item has no associated metadata to validate against mets xml dmdSec"
+                    "item has no associated metadata in the metadata export spreadsheet to validate against mets xml"
                 )
 
 
