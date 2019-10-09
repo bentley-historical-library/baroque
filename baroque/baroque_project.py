@@ -69,6 +69,7 @@ class BaroqueProject(object):
         self.source_directory = source_directory
         self.destination_directory = destination_directory
         self.metadata_export = metadata_export
+        self.errors = {}
 
         if self.metadata_export:
             self.metadata = self.parse_metadata_export(metadata_export)
@@ -85,8 +86,6 @@ class BaroqueProject(object):
             self.parse_collection(source_directory)
         elif self.source_type == "item":
             self.parse_item(source_directory)
-
-        self.errors = {}
 
     def characterize_source_directory(self):
         """
@@ -184,11 +183,15 @@ class BaroqueProject(object):
             if other is True:
                 files["other"].append(file)
 
-        self.items.append({
-            "id": os.path.basename(item_directory),
-            "path": item_directory,
-            "files": files
-        })
+        if len(files["wav"]) > 0 or len(files["mp3"]) > 0:
+            self.items.append({
+                "id": os.path.basename(item_directory),
+                "path": item_directory,
+                "files": files
+            })
+        else:
+            self.errors["baroque_project"] = []
+            self.add_errors("baroque_project", "warning", item_directory, os.path.basename(item_directory), "item directory does not appear to be an audio recording")
     
     def _parse_collection_id(self, item_id):
         return item_id.split("-")[0] # NOTE: Collection IDs are parsed from item IDs
