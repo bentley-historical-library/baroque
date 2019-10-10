@@ -25,6 +25,7 @@ def main():
 
     if (args.structure or args.mets) and not args.export:
         print("SYSTEM ERROR: metadata export [-e] is required for structure and METS validation")
+        sys.exit()
 
     if args.structure:
         StructureValidator(project).validate()
