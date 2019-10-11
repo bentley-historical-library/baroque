@@ -74,9 +74,6 @@ Not yet implemented.
 ### Validate checksums
 Not yet implemented.
 
-### Error reports
-BAroQUe will run the validation steps and output a report, including errors, in the specified destination_directory
-
 ## General Functionality
 
 ### BaroqueProject
