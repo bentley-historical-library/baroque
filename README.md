@@ -33,8 +33,8 @@ A summary of the available validation actions are below, following by detailed i
 
 An example command to validate directory and file structure for a shipment-level directory might look like:
 
-```console
-baroque.py /path/to/shipment /path/to/reports -s -e /path/to/metadata/export
+```sh
+$ baroque.py /path/to/shipment /path/to/reports -s -e /path/to/metadata/export
 ```
 
 ### Validate directory and file structure
@@ -47,8 +47,8 @@ This step validates the directory and file structure of the supplied source dire
 | -s, --structure | Validate directory and file structure |
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
-```console
-baroque.py SOURCE_DIR DESTINATION_DIR -s/--structure -e/--export PATH
+```sh
+$ baroque.py SOURCE_DIR DESTINATION_DIR -s/--structure -e/--export PATH
 ```
 
 ### Validate METS XML
@@ -61,8 +61,8 @@ This step validates the METS XML for each item. This includes validating that va
 | -m, --mets | Validate METS XML |
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
-```console
-baroque.py SOURCE_DIR DESTINATION_DIR -m/--mets -e/export PATH
+```sh
+$ baroque.py SOURCE_DIR DESTINATION_DIR -m/--mets -e/export PATH
 ```
 
 ### Validate WAV BEXT chunks
