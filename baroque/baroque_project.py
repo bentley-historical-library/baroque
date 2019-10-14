@@ -21,13 +21,7 @@ class BaroqueProject(object):
     {
         "source": source_directory,
         "destination": destination_directory,
-        "errors": {
-            "checksum_validation" : [],
-            "file_format_validation" : [],
-            "mets_validation" : [],
-            "structure_validation" : [],
-            "wav_bext_chunk_validation" : []
-        },
+        "errors": {},
         "shipment" : [
             {
             "id": "",
@@ -206,8 +200,8 @@ class BaroqueProject(object):
 
     def parse_metadata_export(self, metadata_export):
         """
-        This function parses collection IDs or item IDs from the "DigFile Calc" column in the metadata export file.
-        The metadata export file can be either csv or xlsx.
+        This function parses the metadata export supplied by BHL to the vendor (either a CSV or xlsx file)
+        It stores the values of the DigFile Calc, CollectionTitlte, ItemTitle, and ItemDate columns
         """
         if not os.path.exists(metadata_export):
             print("SYSTEM ERROR: metadata export does not exist")
@@ -253,7 +247,7 @@ class BaroqueProject(object):
 
         # File type: neither csv nor xlsx
         else:
-            print("SYSTEM ERROR: metadata export is an unexpected file type")
+            print("SYSTEM ERROR: metadata export is an unexpected file type: {}".format(export_type))
             sys.exit()
 
         return metadata
@@ -262,11 +256,12 @@ class BaroqueProject(object):
         """
         Add errors, organized by validation, to the BaroqueProject error attribute.
         Each validation (e.g., structure) has its own list of errors.
-        Each error message is a dictionary with four key, value pairs:
-        - error_type : cladsification of the errror (either "requirement" or "warning")
+        Each error message is a dictionary with five key, value pairs:
+        - validation : the validation step where the error was found
+        - error_type : classification of the errror (either "requirement" or "warning")
         - path : where the error occurs (e.g., "C:\\Users\\person\\Desktop\\2019103\\12345")
         - id : what the error pertains to (e.g., "85429-SR-7")
-        - error : what the error is (e.g., "empty directory", "empty file")
+        - error : a message describing the error (e.g., "empty directory", "empty file")
         """
 
         self.errors[validation].append({
