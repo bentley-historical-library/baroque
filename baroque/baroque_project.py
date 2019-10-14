@@ -1,9 +1,9 @@
 import csv
 import os
 import sys
+import warnings
 
 from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
 
 
 class BaroqueProject(object):
@@ -21,13 +21,7 @@ class BaroqueProject(object):
     {
         "source": source_directory,
         "destination": destination_directory,
-        "errors": {
-            "checksum_validation" : [],
-            "file_format_validation" : [],
-            "mets_validation" : [],
-            "structure_validation" : [],
-            "wav_bext_chunk_validation" : []
-        },
+        "errors": {},
         "shipment" : [
             {
             "id": "",
@@ -192,10 +186,10 @@ class BaroqueProject(object):
         else:
             self.errors["baroque_project"] = []
             self.add_errors("baroque_project", "warning", item_directory, os.path.basename(item_directory), "item directory does not appear to be an audio recording")
-    
+
     def _parse_collection_id(self, item_id):
         return item_id.split("-")[0] # NOTE: Collection IDs are parsed from item IDs
-    
+
     def _read_export(self, keys, rows, export_type):
         for row in rows:
             if export_type == ".csv":
@@ -206,13 +200,13 @@ class BaroqueProject(object):
 
     def parse_metadata_export(self, metadata_export):
         """
-        This function parses collection IDs or item IDs from the "DigFile Calc" column in the metadata export file.
-        The metadata export file can be either csv or xlsx.
+        This function parses the metadata export supplied by BHL to the vendor (either a CSV or xlsx file)
+        It stores the values of the DigFile Calc, CollectionTitlte, ItemTitle, and ItemDate columns
         """
         if not os.path.exists(metadata_export):
             print("SYSTEM ERROR: metadata export does not exist")
             sys.exit()
-        
+
         metadata = {"collections_ids": [], "items_ids": [], "item_metadata": {}}
 
         item_id_column = "DigFile Calc"
@@ -229,13 +223,16 @@ class BaroqueProject(object):
                     rows = [row for row in reader]
 
             elif export_type == ".xlsx":
+                # momentarily set warnings to ignore to hide openpyxl's "UserWarning: Workbook contains no default style" message
+                warnings.simplefilter("ignore")
                 workbook = load_workbook(metadata_export)
+                warnings.simplefilter("default")
                 sheet = workbook.active
                 reader = sheet.rows
                 keys = [c.value for c in next(reader)]
                 rows = [row for row in reader]
                 workbook.close()
-            
+
             for row in self._read_export(keys, rows, export_type):
                 item_id = row.get(item_id_column)
                 collection_id = self._parse_collection_id(item_id)
@@ -253,7 +250,7 @@ class BaroqueProject(object):
 
         # File type: neither csv nor xlsx
         else:
-            print("SYSTEM ERROR: metadata export is an unexpected file type")
+            print("SYSTEM ERROR: metadata export is an unexpected file type: {}".format(export_type))
             sys.exit()
 
         return metadata
@@ -262,11 +259,12 @@ class BaroqueProject(object):
         """
         Add errors, organized by validation, to the BaroqueProject error attribute.
         Each validation (e.g., structure) has its own list of errors.
-        Each error message is a dictionary with four key, value pairs:
-        - error_type : cladsification of the errror (either "requirement" or "warning")
+        Each error message is a dictionary with five key, value pairs:
+        - validation : the validation step where the error was found
+        - error_type : classification of the errror (either "requirement" or "warning")
         - path : where the error occurs (e.g., "C:\\Users\\person\\Desktop\\2019103\\12345")
         - id : what the error pertains to (e.g., "85429-SR-7")
-        - error : what the error is (e.g., "empty directory", "empty file")
+        - error : a message describing the error (e.g., "empty directory", "empty file")
         """
 
         self.errors[validation].append({
