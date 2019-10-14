@@ -2,6 +2,7 @@ import os
 import re
 from lxml import etree
 import dateparser
+import sys
 
 from .baroque_validator import BaroqueValidator
 
@@ -15,6 +16,7 @@ namespaces = {
     'xlink': 'http://www.w3.org/1999/xlink'
 }
 
+
 class MetsValidator(BaroqueValidator):
     def __init__(self, project):
         validation = "mets"
@@ -22,6 +24,8 @@ class MetsValidator(BaroqueValidator):
         super().__init__(validation, validator, project)
 
     def sanitize_text(self, text):
+        """
+        Helper function to remove newlines and extra spaces from a string"""
         if text is None:
             return ""
         else:
@@ -31,6 +35,8 @@ class MetsValidator(BaroqueValidator):
             return text
 
     def check_tag_text(self, tag, argument, value=None):
+        """
+        Helper function to check an element's value against an expected value"""
         tag_text = self.sanitize_text(tag.text)
         value = self.sanitize_text(value)
         if argument == "Is":
@@ -42,7 +48,9 @@ class MetsValidator(BaroqueValidator):
                 )
 
     def check_tag_attrib(self, tag, attribute, argument, value=None):
-        if argument == "Exists": # Does Not Exist, Is, Is Not, Contains, Does Not Contain, Is Greater Than, Is At Least, Is Less Than
+        """
+        Helper function that checks that an attribute exists and/or that it's value matches an expected value"""
+        if argument == "Exists":  # Does Not Exist, Is, Is Not, Contains, Does Not Contain, Is Greater Than, Is At Least, Is Less Than
             self.check_tag_attrib_exists(tag, attribute)
         elif argument == "Is":
             # checking if the attribute equals a certain value requires first checking that the attribute exists
@@ -52,8 +60,10 @@ class MetsValidator(BaroqueValidator):
         else:
             print("unsupported argument " + argument + " for check_tag_attrib")
             sys.exit()
-    
+
     def check_tag_attrib_exists(self, tag, attribute):
+        """
+        Helper function to check if a tag attribute exists"""
         exists = True
         if attribute not in tag.attrib:
             self.error(
@@ -63,16 +73,20 @@ class MetsValidator(BaroqueValidator):
             )
             exists = False
         return exists
-    
+
     def check_tag_attrib_equals(self, tag, attribute, value):
+        """
+        Helper function to compare a tag's attribute value to an expected value"""
         if tag.attrib.get(attribute) != value:
             self.error(
                 self.path_to_mets,
                 self.item_id,
                 tag.attrib.get(attribute) + ' in ' + attribute + ' attribute does not equal ' + value + ' value in ' + tag.tag
             )
-    
+
     def check_element_exists(self, element_path):
+        """
+        Helper function to check if a specific element exists"""
         elements = self.tree.xpath(element_path, namespaces=namespaces)
         element = None
         exists = True
@@ -92,10 +106,14 @@ class MetsValidator(BaroqueValidator):
             exists = False
         else:
             element = elements[0]
-        
+
         return element, exists
-    
+
     def check_subelements_exist(self, element, subelement_path, expected=False):
+        """
+        Helper function that checks if one or more of a given subelement exist
+        Optionally takes an expected parameter to check for an exact number of subelements
+        Returns a list of all matching subelements"""
         subelements = element.findall(subelement_path, namespaces=namespaces)
         exist = True
         if expected and (len(subelements) != expected):
@@ -116,6 +134,8 @@ class MetsValidator(BaroqueValidator):
         return subelements, exist
 
     def check_dates(self, metadata_date, mets_date):
+        """
+        Helper function that compares dates from a metadata spreadsheet and METS XML"""
         metadata_date = self.sanitize_text(metadata_date)
         if metadata_date == "Undated" and mets_date == "undated":
             pass
@@ -127,8 +147,10 @@ class MetsValidator(BaroqueValidator):
                     metadata_date + ' date in metadata export does not equal ' + mets_date + ' date in mets'
             )
 
-    
     def check_subelement_exists(self, element, subelement_path):
+        """
+        Helper function to check if a subelement exists
+        Returns a single subelement"""
         subelement = element.find(subelement_path, namespaces=namespaces)
         exists = True
         if subelement is None:
@@ -155,7 +177,7 @@ class MetsValidator(BaroqueValidator):
                         self.item_id,
                         "mets xml is missing the following namespace: {}:{}".format(ns, namespace)
                     )
-            
+
             self.check_tag_attrib(mets_element, "OBJID", "Is", self.item_id)
             self.check_tag_attrib(mets_element, "TYPE", "Is", "AUDIO RECORDING") # Note: this assumes BAroQUe will only be used for audio QC
 
@@ -174,7 +196,7 @@ class MetsValidator(BaroqueValidator):
                 <mets:name>University of Michigan, Bentley Historical Library</mets:name>
             </mets:agent>
         </mets:metsHdr>"""
-        
+
         mets_header, exists = self.check_element_exists("/mets:mets/mets:metsHdr")
 
         if exists:
@@ -191,7 +213,7 @@ class MetsValidator(BaroqueValidator):
                 mediapreserve_name, exists = self.check_subelement_exists(mediapreserve_agent, "mets:name")
                 if exists:
                     self.check_tag_text(mediapreserve_name, "Is", "The MediaPreserve")
-                
+
                 # Check the PRESERVATION Bentley agent
                 bhl_preservation_agent = agents[1]
                 self.check_tag_attrib(bhl_preservation_agent, "ROLE", "Is", "PRESERVATION")
@@ -235,7 +257,7 @@ class MetsValidator(BaroqueValidator):
                                 self.item_id,
                                 "item title not found in metadata export spreadsheet to validate against mets xml"
                             )
-                        
+
                         if self.item_metadata.get("collection_title"):
                             dc_relation, exists = self.check_subelement_exists(xmlData, "dc:relation")
                             if exists:
@@ -246,11 +268,11 @@ class MetsValidator(BaroqueValidator):
                                 self.item_id,
                                 "collection title not found in metadata export spreadsheet to validate against mets xml"
                             )
-                        
+
                         dc_identifier, exists = self.check_subelement_exists(xmlData, "dc:identifier")
                         if exists:
                             self.check_tag_text(dc_identifier, "Is", self.item_id)
-                        
+
                         if self.item_metadata.get("item_date"):
                             dc_date, exists = self.check_subelement_exists(xmlData, "dc:date")
                             if exists:
@@ -271,7 +293,6 @@ class MetsValidator(BaroqueValidator):
                     self.item_id,
                     "item has no associated metadata in the metadata export spreadsheet to validate against mets xml"
                 )
-
 
     def validate_administrative_metadata(self):
         """
@@ -296,11 +317,9 @@ class MetsValidator(BaroqueValidator):
                         self.item_id,
                         "audio filenames found in amdSec/techMDs do not match files found in directory"
                     )
-            
+
             sourceMD, _ = self.check_subelement_exists(administrative_metadata, "mets:sourceMD")
             digiprovMD, _ = self.check_subelement_exists(administrative_metadata, "mets:digiprovMD")
-
-
 
     def validate_file_section(self):
         """
@@ -354,7 +373,7 @@ class MetsValidator(BaroqueValidator):
 
         path_to_item = item['path']
         mets = item['files']['xml'][0]
-        
+
         self.item_id = item['id']
         self.item_files = item["files"]
         self.item_metadata = self.project.metadata["item_metadata"].get(self.item_id)
@@ -371,11 +390,11 @@ class MetsValidator(BaroqueValidator):
             return False
 
     def validate_mets(self):
-        """ 
+        """
         Validates METS"""
 
         for item in self.project.items:
-        
+
             # Assuming for now that validating directory and file structure would have picked this up
             if not item['files']['xml']:
                 continue
