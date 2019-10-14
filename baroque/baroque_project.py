@@ -1,9 +1,9 @@
 import csv
 import os
 import sys
+import warnings
 
 from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
 
 
 class BaroqueProject(object):
@@ -186,10 +186,10 @@ class BaroqueProject(object):
         else:
             self.errors["baroque_project"] = []
             self.add_errors("baroque_project", "warning", item_directory, os.path.basename(item_directory), "item directory does not appear to be an audio recording")
-    
+
     def _parse_collection_id(self, item_id):
         return item_id.split("-")[0] # NOTE: Collection IDs are parsed from item IDs
-    
+
     def _read_export(self, keys, rows, export_type):
         for row in rows:
             if export_type == ".csv":
@@ -206,7 +206,7 @@ class BaroqueProject(object):
         if not os.path.exists(metadata_export):
             print("SYSTEM ERROR: metadata export does not exist")
             sys.exit()
-        
+
         metadata = {"collections_ids": [], "items_ids": [], "item_metadata": {}}
 
         item_id_column = "DigFile Calc"
@@ -223,13 +223,16 @@ class BaroqueProject(object):
                     rows = [row for row in reader]
 
             elif export_type == ".xlsx":
+                # momentarily set warnings to ignore to hide openpyxl's "UserWarning: Workbook contains no default style" message
+                warnings.simplefilter("ignore")
                 workbook = load_workbook(metadata_export)
+                warnings.simplefilter("default")
                 sheet = workbook.active
                 reader = sheet.rows
                 keys = [c.value for c in next(reader)]
                 rows = [row for row in reader]
                 workbook.close()
-            
+
             for row in self._read_export(keys, rows, export_type):
                 item_id = row.get(item_id_column)
                 collection_id = self._parse_collection_id(item_id)
