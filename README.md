@@ -19,9 +19,9 @@ BAroQUe's functionality is implemented in `baroque.py`, which is a command line 
 - The path to a destination directory where reports and logs will be stored
 - The validation action to be run against the source directory
 
-Certain validation actions require a fourth argument, the path to a metadata export to validate against.
+Certain validation actions (`structure` and `mets`) require a fourth argument: the path to a metadata export to validate against.
 
-A summary of the available validation actions are below, following by detailed instructions for each validation.
+A summary of the available validation actions are below, followed by detailed instructions for each validation.
 
 | Action | Description |
 | --- | --- |
