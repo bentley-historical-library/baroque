@@ -3,6 +3,7 @@ import re
 from lxml import etree
 import dateparser
 import sys
+from tqdm import tqdm
 
 from .baroque_validator import BaroqueValidator
 
@@ -393,7 +394,7 @@ class MetsValidator(BaroqueValidator):
         """
         Validates METS"""
 
-        for item in self.project.items:
+        for item in tqdm(self.project.items):
 
             # Assuming for now that validating directory and file structure would have picked this up
             if not item['files']['xml']:

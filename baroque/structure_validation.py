@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+from tqdm import tqdm
 
 from .baroque_validator import BaroqueValidator
 
@@ -98,7 +99,7 @@ class StructureValidator(BaroqueValidator):
         # List of files that are checked.
         check_files = ["jpg", "xml", "txt", "other"]
 
-        for item in self.project.items:
+        for item in tqdm(self.project.items):
             min_output = {}
             max_output = {}
             other_output = []
