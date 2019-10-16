@@ -7,6 +7,7 @@ The **Bentley Audiovisual Quality control Utility (BAroQUe)** is a Python 3-base
 - [dateparser](https://dateparser.readthedocs.io/en/latest/): To compare dates in metadata exports and METS XML
 - [lxml](https://lxml.de/): To parse METS XML files
 - [openpyxl](https://openpyxl.readthedocs.io/en/stable/): To read xlsx files
+- [tqdm](https://pypi.org/project/tqdm/): To make loops show a smart progress meter
 
 ## Installation
 - Clone this repository to your computer
