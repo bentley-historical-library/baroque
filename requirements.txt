@@ -3,3 +3,4 @@ jdcal==1.4.1
 lxml==4.4.1
 openpyxl==2.6.3
 dateparser==0.7.2
+tqdm==4.36.1
