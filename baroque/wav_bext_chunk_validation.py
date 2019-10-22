@@ -71,9 +71,9 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                 self.check_bext_metadatum_value_is(path_to_wav, row, "Originator", "US, MiU-H")
                 originator_reference = "MiU-H_" + os.path.splitext(os.path.split(path_to_wav)[1])[0]
                 self.check_bext_metadatum_value_is(path_to_wav, row, "OriginatorReference", originator_reference)
-                self.check_bext_metadatum_exists(path_to_wav, row, "OriginationDate")
+                self.check_bext_metadatum_value_is_datetime(path_to_wav, row, "OriginationDate")
                 self.check_bext_metadatum_exists(path_to_wav, row, "TimeReference")
-                self.check_bext_metadatum_exists(path_to_wav, row, "OriginationTime")
+                self.check_bext_metadatum_value_is_datetime(path_to_wav, row, "OriginationTime")
                 self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
     
     def validate_wav_bext_chunks(self):
