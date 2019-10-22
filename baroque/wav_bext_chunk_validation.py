@@ -15,6 +15,7 @@ class WavBextChunkValidator(BaroqueValidator):
     def get_paths_to_wavs(self, item):
         self.item_id = item["id"]
         self.path_to_item = item["path"]
+        self.item_metadata = self.project.metadata["item_metadata"].get(self.item_id)
         paths_to_wavs = []
         path_to_item = item['path']
         wav_files = item['files']['wav']
@@ -65,7 +66,8 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
         with io.StringIO(bwfmetaedit_csv.decode()) as f:
             reader = csv.DictReader(f)
             for row in reader:
-                self.check_bext_metadatum_exists(path_to_wav, row, "Description")
+                item_title = self.item_metadata.get("item_title")
+                self.check_bext_metadatum_value_is(path_to_wav, row, "Description", item_title)
                 self.check_bext_metadatum_value_is(path_to_wav, row, "Originator", "US, MiU-H")
                 originator_reference = "MiU-H_" + os.path.splitext(os.path.split(path_to_wav)[1])[0]
                 self.check_bext_metadatum_value_is(path_to_wav, row, "OriginatorReference", originator_reference)
