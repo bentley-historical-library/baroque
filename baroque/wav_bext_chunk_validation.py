@@ -12,6 +12,8 @@ class WavBextChunkValidator(BaroqueValidator):
         super().__init__(validation, validator, project)
     
     def get_paths_to_wavs(self, item):
+        self.item_id = item["id"]
+        self.path_to_item = item["path"]
         paths_to_wavs = []
         path_to_item = item['path']
         wav_files = item['files']['wav']
@@ -76,6 +78,28 @@ class WavBextChunkValidator(BaroqueValidator):
         mediainfo_json = json.loads(output)
         
         return mediainfo_json
+
+    def check_bext_metadatum_exists(self, path_to_wav, mediainfo_json, container_type, metadatum, extra=False):
+        if extra == True:
+            metadatum_to_check = [container["extra"].get(metadatum) for container in mediainfo_json["media"]["track"] if container["@type"] == container_type][0]
+        else:
+            metadatum_to_check = [container.get(metadatum) for container in mediainfo_json["media"]["track"] if container["@type"] == container_type][0]
+        if not metadatum_to_check:
+            self.error(
+                path_to_wav,
+                self.item_id,
+                metadatum + " does not exist"
+            )
+    
+
+    def check_bext_metadatum_value_is(self, path_to_wav, mediainfo_json, container_type, metadatum, value):
+        metadatum_value_to_check = [container[metadatum] for container in mediainfo_json["media"]["track"] if container["@type"] == container_type][0]
+        if metadatum_value_to_check != value:
+            self.error(
+                path_to_wav,
+                self.item_id,
+                metadatum + " value of " + metadatum_value_to_check + " does not equal " + value
+            )
     
     def validate_wav_bext_chunks(self):
         """ 
@@ -85,3 +109,15 @@ class WavBextChunkValidator(BaroqueValidator):
             paths_to_wavs = self.get_paths_to_wavs(item)
             for path_to_wav in paths_to_wavs: 
                 mediainfo_json = self.get_mediainfo_json(path_to_wav)
+                # Replicates functionality in "R:\AV Processing\TEST FILES\MDQC Templates\WAV_check_BEXT_SPECS_5.tpl"
+                self.check_bext_metadatum_value_is(path_to_wav, mediainfo_json, "Audio", "BitDepth", "24")
+                self.check_bext_metadatum_value_is(path_to_wav, mediainfo_json, "Audio", "Format", "PCM")
+                self.check_bext_metadatum_exists(path_to_wav, mediainfo_json, "General", "Description")
+                self.check_bext_metadatum_exists(path_to_wav, mediainfo_json, "General", "EncodedBy")
+                self.check_bext_metadatum_exists(path_to_wav, mediainfo_json, "General", "Encoded_Date")
+                self.check_bext_metadatum_exists(path_to_wav, mediainfo_json, "General", "Encoded_Library_Settings")
+                self.check_bext_metadatum_value_is(path_to_wav, mediainfo_json, "General", "FileExtension", "wav")
+                self.check_bext_metadatum_exists(path_to_wav, mediainfo_json, "General", "OriginalSourceForm")
+                self.check_bext_metadatum_value_is(path_to_wav, mediainfo_json, "General", "Producer", "US, MiU-H")
+                self.check_bext_metadatum_exists(path_to_wav, mediainfo_json, "General", "Producer_Reference", extra=True)
+                self.check_bext_metadatum_value_is(path_to_wav, mediainfo_json, "Audio", "SamplingRate", "96000")
