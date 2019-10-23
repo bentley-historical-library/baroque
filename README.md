@@ -20,7 +20,7 @@ BAroQUe's functionality is implemented in `baroque.py`, which is a command line 
 - The path to a destination directory where reports and logs will be stored
 - The validation action to be run against the source directory
 
-Certain validation actions (`structure` and `mets`) require a fourth argument: the path to a metadata export to validate against. BAroQUe expects this metadata export to contain at least the following column headers: "DigFile Calc", CollectionTitle", "ItemTitle", and "ItemDate".
+Certain validation actions (`structure`, `mets` and `wav`) require a fourth argument: the path to a metadata export to validate against. BAroQUe expects this metadata export to contain at least the following column headers: "DigFile Calc", CollectionTitle", "ItemTitle", and "ItemDate".
 
 A summary of the available validation actions are below, followed by detailed instructions for each validation.
 
@@ -67,7 +67,18 @@ $ baroque.py SOURCE_DIR DESTINATION_DIR -m/--mets -e/export PATH
 ```
 
 ### Validate WAV BEXT chunks
-Not yet implemented.
+This step validates each WAV file in an item's embedded BEXT chunk. THis includes validating that various bits of metadata exist (e.g., `TimeReference` and `CodingHistory`), that the value of various bits of metadata match what's expected (e.g., that `Description` matches the `ItemTitle` field in the metadata export and that `OriginatorReference` follows the appropriate convention) and that various bits of metadata can be recognized as times or dates (e.g., `OriginationTime` and `OriginationDate`).
+
+| Argument | Help |
+| --- | --- |
+| SOURCE_DIR | Path to a source directory (a shipment, collection, or item) |
+| DESTINATION_DIR | Path to a destination directory where reports will be saved |
+| -w, --wav | Validate WAV BEXT chunk |
+| -e, --export | Path to a metadata export (CSV or .xlsx) |
+
+```sh
+$ baroque.py SOURCE_DIR DESTINATION_DIR -m/--mets -e/export PATH
+```
 
 ### Validate files
 Not yet implemented.
