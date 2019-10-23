@@ -33,7 +33,7 @@ class WavBextChunkValidator(BaroqueValidator):
         R:\\BAroQUe\\2019012\\0648\\0648-SR-4\\0648-SR-4-1-2-am.wav,Paul Phillips (Tape No. 4),"US, MiU-H",MiU-H_0648-SR-4-1-am,2019-05-20,12:04:58,00:47:59.000,276384000,1,,,,,,,"A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
 A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan",,,,,,,,,Reel-to-reel; 7 inch; Sony; None; Polyester"""
 
-        bwfmetaedit_csv = subprocess.check_output(["./tools/bwfmetaedit.exe", "--out-core", path_to_wav])
+        bwfmetaedit_csv = subprocess.check_output(["./tools/bwfmetaedit.exe", "--out-core", path_to_wav], stderr=subprocess.STDOUT)
 
         return bwfmetaedit_csv
 
