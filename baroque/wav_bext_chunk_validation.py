@@ -6,6 +6,8 @@ import io
 from tqdm import tqdm
 
 from .baroque_validator import BaroqueValidator
+from .utils import sanitize_text
+
 
 class WavBextChunkValidator(BaroqueValidator):
     def __init__(self, project):
@@ -47,7 +49,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
 
     def check_bext_metadatum_value_is(self, path_to_wav, row, metadatum, value):
         self.check_bext_metadatum_exists(path_to_wav, row, metadatum)
-        if row.get(metadatum) and row[metadatum] != value:
+        if row.get(metadatum) and sanitize_text(row[metadatum]) != sanitize_text(value):
             self.error(
                 path_to_wav,
                 self.item_id,
@@ -64,12 +66,19 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
             )
 
     def validate_bwfmetaedit_csv(self, path_to_wav, bwfmetaedit_csv):
-        with io.StringIO(bwfmetaedit_csv.decode()) as f:
+        with io.StringIO(bwfmetaedit_csv.decode("utf-8")) as f:
             reader = csv.DictReader(f)
             for row in reader:
-                
-                item_title = self.item_metadata.get("item_title")
-                self.check_bext_metadatum_value_is(path_to_wav, row, "Description", item_title)
+                if self.item_metadata:
+                    item_title = self.item_metadata.get("item_title")
+                    self.check_bext_metadatum_value_is(path_to_wav, row, "Description", item_title)
+                else:
+                    self.warn(
+                        path_to_wav,
+                        self.item_id,
+                        "item has no associated metadata in the metadata export spreadsheet to validate against wav bext chunk"
+                    )
+
                 self.check_bext_metadatum_value_is(path_to_wav, row, "Originator", "US, MiU-H")
                 originator_reference = "MiU-H_" + os.path.splitext(os.path.split(path_to_wav)[1])[0]
                 self.check_bext_metadatum_value_is(path_to_wav, row, "OriginatorReference", originator_reference)
@@ -79,7 +88,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
 
                 self.check_bext_metadatum_exists(path_to_wav, row, "TimeReference")
                 self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
-    
+
     def validate_wav_bext_chunks(self):
         """ 
         Validates WAV BEXT chunks """

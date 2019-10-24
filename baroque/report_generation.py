@@ -21,7 +21,7 @@ def generate_reports(baroqueproject):
         csv_filename = source + "-" + date + ".csv"
         csv_filepath = os.path.join(baroqueproject.destination_directory, csv_filename)
 
-        with open(csv_filepath, 'w', newline='') as csvfile:
+        with open(csv_filepath, 'w', newline='', encoding="utf-8") as csvfile:
             # Define and write header row values of csv file.
             fieldnames = ['validation', 'error_type', 'path', 'id', 'error']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

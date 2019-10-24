@@ -6,6 +6,7 @@ import sys
 from tqdm import tqdm
 
 from .baroque_validator import BaroqueValidator
+from .utils import sanitize_text
 
 # Note: Some namespaces referenced in the example XML files are not used in the METS file. Unless I'm missing some, these are: fits, fn, rights, marc21 and  tcf.
 namespaces = {
@@ -24,22 +25,11 @@ class MetsValidator(BaroqueValidator):
         validator = self.validate_mets
         super().__init__(validation, validator, project)
 
-    def sanitize_text(self, text):
-        """
-        Helper function to remove newlines and extra spaces from a string"""
-        if text is None:
-            return ""
-        else:
-            text = re.sub(r"\n", " ", text)
-            text = re.sub(r"\s+", " ", text)
-            text = text.strip()
-            return text
-
     def check_tag_text(self, tag, argument, value=None):
         """
         Helper function to check an element's value against an expected value"""
-        tag_text = self.sanitize_text(tag.text)
-        value = self.sanitize_text(value)
+        tag_text = sanitize_text(tag.text)
+        value = sanitize_text(value)
         if argument == "Is":
             if tag_text != value:
                 self.error(
@@ -137,7 +127,7 @@ class MetsValidator(BaroqueValidator):
     def check_dates(self, metadata_date, mets_date):
         """
         Helper function that compares dates from a metadata spreadsheet and METS XML"""
-        metadata_date = self.sanitize_text(metadata_date)
+        metadata_date = sanitize_text(metadata_date)
         if metadata_date == "Undated" and mets_date == "undated":
             pass
         # Trying to get around character encoding issues at the end of dates discovered during testing
