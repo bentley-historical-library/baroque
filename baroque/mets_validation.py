@@ -384,7 +384,7 @@ class MetsValidator(BaroqueValidator):
         """
         Validates METS"""
 
-        for item in tqdm(self.project.items):
+        for item in tqdm(self.project.items, desc="METS Validation"):
 
             # Assuming for now that validating directory and file structure would have picked this up
             if not item['files']['xml']:

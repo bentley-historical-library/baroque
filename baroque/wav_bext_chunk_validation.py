@@ -94,7 +94,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
         """ 
         Validates WAV BEXT chunks """
 
-        for item in tqdm(self.project.items):
+        for item in tqdm(self.project.items, desc="WAV BEXT Chunk Validation"):
             paths_to_wavs = self.get_paths_to_wavs(item)
             for path_to_wav in paths_to_wavs: 
                 bwfmetaedit_csv = self.get_bwfmetaedit_csv(path_to_wav)
