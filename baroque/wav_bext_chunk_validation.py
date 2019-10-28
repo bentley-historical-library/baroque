@@ -65,7 +65,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                 metadatum + " value of " + row[metadatum] + " is not datetime"
             )
     
-    def check_coding_history(self, path_to_wav, row):
+    def check_coding_history_subelements(self, path_to_wav, row):
         # "A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
         # A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D"
         self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
@@ -210,9 +210,8 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                 self.check_bext_metadatum_value_is_datetime(path_to_wav, row, "OriginationTime")
 
                 self.check_bext_metadatum_exists(path_to_wav, row, "TimeReference")
-                # self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
 
-                self.check_coding_history(path_to_wav, row)
+                self.check_coding_history_subelements(path_to_wav, row)
 
 
     def validate_wav_bext_chunks(self):
