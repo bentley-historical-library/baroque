@@ -64,7 +64,30 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                 self.item_id,
                 metadatum + " value of " + row[metadatum] + " is not datetime"
             )
+
+    def check_num_coding_history_subelement_is_at_least_one(self, path_to_wav, coding_histories, tag):
+        subelement_num = 0
+        for coding_history in coding_histories:
+            for subelement_tag, _ in coding_history.items():
+                if subelement_tag == tag:
+                    subelement_num += 1
+        if subelement_num == 0:
+            self.error(
+                path_to_wav,
+                self.item_id,
+                "no " + tag + " field in coding history"
+            )
     
+    def check_coding_history_subelement_value(self, path_to_wav, coding_histories, tag, values):
+        for coding_history in coding_histories:
+            for subelement_tag, subelement_text in coding_history.items():
+                if subelement_tag == tag and subelement_text not in values:
+                    self.error(
+                        path_to_wav,
+                        self.item_id,
+                        tag + " field value " + subelement_text + " not in " + str(values)
+                    )
+
     def check_coding_history_subelements(self, path_to_wav, row):
         # "A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
         # A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D"
@@ -98,94 +121,19 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                             self.item_id,
                             subelement_tag + " not in list of acceptable coding history subelement tags"
                         )
-            # BEXT chunk "Coding History" field must have at least one A field
-            coding_algorithms = 0
-            for coding_history in coding_histories:
-                for subelement_tag, _ in coding_history.items():
-                    if subelement_tag == "A":
-                        coding_algorithms += 1
-            if coding_algorithms == 0:
-                self.error(
-                    path_to_wav,
-                    self.item_id,
-                    "no coding algorithm (a) field in coding history"
-                )
-            # BEXT chunk "Coding History" field A must be "ANALOG" or "PCM"
-            for coding_history in coding_histories:
-                for subelement_tag, subelement_text in coding_history.items():
-                    if subelement_tag == "A" and subelement_text not in ["ANALOGUE", "PCM"]:
-                        self.error(
-                            path_to_wav,
-                            self.item_id,
-                            "coding algorithm (a) field value not ANALOGUE or PCM"
-                        )
-            # BEXT chunk "Coding History" field must have at least one F field
-            sampling_frequencies = 0
-            for coding_history in coding_histories:
-                for subelement_tag, _ in coding_history.items():
-                    if subelement_tag == "F":
-                        sampling_frequencies += 1
-            if sampling_frequencies == 0:
-                self.error(
-                    path_to_wav,
-                    self.item_id,
-                    "no sampling frequency (f) field in coding history"
-                )
-            # BEXT chunk "Coding History" field F must be 9600
-            for coding_history in coding_histories:
-                for subelement_tag, subelement_text in coding_history.items():
-                    if subelement_tag == "F" and subelement_text != "96000":
-                        self.error(
-                            path_to_wav,
-                            self.item_id,
-                            "sampling frequency (f) field value not 96000"
-                        )
-            # BEXT chunk "Coding History" field must have at least one W field
-            word_lengths = 0
-            for coding_history in coding_histories:
-                for subelement_tag, _ in coding_history.items():
-                    if subelement_tag == "F":
-                        word_lengths += 1
-            if word_lengths == 0:
-                self.error(
-                    path_to_wav,
-                    self.item_id,
-                    "no word length (w) field in coding history"
-                )
-            # BEXT chunk "Coding History" field W must be 9600
-            for coding_history in coding_histories:
-                for subelement_tag, subelement_text in coding_history.items():
-                    if subelement_tag == "W" and subelement_text != "24":
-                        self.error(
-                            path_to_wav,
-                            self.item_id,
-                            "word length (w) field value not 24"
-                        )
-            # BEXT chunk "Coding History" field must have at least one M field
-            modes = 0
-            for coding_history in coding_histories:
-                for subelement_tag, _ in coding_history.items():
-                    if subelement_tag == "M":
-                        modes += 1
-            if modes == 0:
-                self.error(
-                    path_to_wav,
-                    self.item_id,
-                    "no mode (m) field in coding history"
-                )
-            # BEXT chunk "Coding History" field must have at least one T field
-            free_ascii_text_strings = 0
-            for coding_history in coding_histories:
-                for subelement_tag, _ in coding_history.items():
-                    if subelement_tag == "T":
-                        free_ascii_text_strings += 1
-            if free_ascii_text_strings == 0:
-                self.error(
-                    path_to_wav,
-                    self.item_id,
-                    "no free ascii text string (t) field in coding history"
-                )
             
+            self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "A")
+            self.check_coding_history_subelement_value(path_to_wav, coding_histories, "A", ["ANALOGUE", "PCM"])
+
+            self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "F")
+            self.check_coding_history_subelement_value(path_to_wav, coding_histories, "F", ["96000"])
+            
+            self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "W")
+            self.check_coding_history_subelement_value(path_to_wav, coding_histories, "W", ["24"])
+
+            self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "M")
+
+            self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "T")
 
     def validate_bwfmetaedit_csv(self, path_to_wav, bwfmetaedit_csv):
         with io.StringIO(bwfmetaedit_csv.decode("utf-8")) as f:
