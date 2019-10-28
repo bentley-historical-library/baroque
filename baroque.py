@@ -30,7 +30,9 @@ def main():
     elif config["reports"]["path"]:
         project = BaroqueProject(args.source, config["reports"]["path"], args.export)
     else:
-        project = BaroqueProject(args.source, os.path.join("reports"), args.export)
+        if not os.path.isdir("reports"):
+            os.mkdir("reports")
+        project = BaroqueProject(args.source, "reports", args.export)
         
     if (args.structure or args.mets or args.wav) and not args.export:
         print("SYSTEM ERROR: metadata export [-e] is required for directory and file structure, METS validation and WAV BEXT chunks validations")
