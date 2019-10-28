@@ -88,6 +88,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                         tag + " field value " + subelement_text + " not in " + str(values)
                     )
 
+    
     def check_coding_history_subelements(self, path_to_wav, row):
         # "A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
         # A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D"
@@ -135,6 +136,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
 
             self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "T")
 
+    
     def validate_bwfmetaedit_csv(self, path_to_wav, bwfmetaedit_csv):
         with io.StringIO(bwfmetaedit_csv.decode("utf-8")) as f:
             reader = csv.DictReader(f)
