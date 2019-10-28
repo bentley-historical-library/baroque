@@ -64,6 +64,22 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                 self.item_id,
                 metadatum + " value of " + row[metadatum] + " is not datetime"
             )
+    
+    def check_coding_history(self, path_to_wav, row):
+        # "A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
+        # A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D"
+        self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
+        if row.get("CodingHistory"):
+            coding_histories = []
+            for coding_history_line in row["CodingHistory"].splitlines():
+                if coding_history_line:
+                    coding_history = {}
+                    subelements = coding_history_line.split(",")
+                    for subelement in subelements:
+                        subelement_tag = subelement.split("=")[0]
+                        subelement_text = subelement.split("=")[1]
+                        coding_history[subelement_tag] = subelement_text
+                    coding_histories.append(coding_history)
 
     def validate_bwfmetaedit_csv(self, path_to_wav, bwfmetaedit_csv):
         with io.StringIO(bwfmetaedit_csv.decode("utf-8")) as f:
@@ -88,7 +104,10 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                 self.check_bext_metadatum_value_is_datetime(path_to_wav, row, "OriginationTime")
 
                 self.check_bext_metadatum_exists(path_to_wav, row, "TimeReference")
-                self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
+                # self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
+
+                self.check_coding_history(path_to_wav, row)
+
 
     def validate_wav_bext_chunks(self):
         """ 
