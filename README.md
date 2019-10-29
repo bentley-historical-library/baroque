@@ -17,10 +17,10 @@ The **Bentley Audiovisual Quality control Utility (BAroQUe)** is a Python 3-base
 ## Usage
 BAroQUe's functionality is implemented in `baroque.py`, which is a command line script that takes as its input a minimum of 3 arguments:
 - The path to a source_directory that corresponds to either a shipment, a collection, or an item directory
-- The path to a destination directory where reports and logs will be stored
+- An optional argument (`-d, --destination`) with a path to a destination directory where reports and logs will be stored. In the absence of this argument, BAroQUe checks the `config.ini` file for the path to a destination directory. Failing that, BAroQUe defaults to a `/reports` directory.
 - The validation action to be run against the source directory
 
-Certain validation actions (`structure`, `mets` and `wav`) require a fourth argument: the path to a metadata export to validate against. BAroQUe expects this metadata export to contain at least the following column headers: "DigFile Calc", CollectionTitle", "ItemTitle", and "ItemDate".
+Certain validation actions (`structure`, `mets` and `wav`) require a fourth argument: the path to a metadata export (CSV or XLSX) to validate against. BAroQUe expects this metadata export to contain at least the following column headers: "DigFile Calc", CollectionTitle", "ItemTitle", and "ItemDate".
 
 A summary of the available validation actions are below, followed by detailed instructions for each validation.
 
@@ -35,7 +35,7 @@ A summary of the available validation actions are below, followed by detailed in
 An example command to validate directory and file structure for a shipment-level directory might look like:
 
 ```sh
-$ baroque.py /path/to/shipment /path/to/reports -s -e /path/to/metadata/export
+$ baroque.py /path/to/shipment -d /path/to/reports -s -e /path/to/metadata/export
 ```
 
 ### Validate directory and file structure
@@ -44,12 +44,11 @@ This step validates the directory and file structure of the supplied source dire
 | Argument | Help |
 | --- | --- |
 | SOURCE_DIR | Path to a source directory (a shipment, collection, or item) |
-| DESTINATION_DIR | Path to a destination directory where reports will be saved |
 | -s, --structure | Validate directory and file structure |
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
 ```sh
-$ baroque.py SOURCE_DIR DESTINATION_DIR -s/--structure -e/--export PATH
+$ baroque.py SOURCE_DIR -s/--structure -e/--export PATH
 ```
 
 ### Validate METS XML
@@ -58,26 +57,24 @@ This step validates the METS XML for each item. This includes validating that va
 | Argument | Help |
 | --- | --- |
 | SOURCE_DIR | Path to a source directory (a shipment, collection, or item) |
-| DESTINATION_DIR | Path to a destination directory where reports will be saved |
 | -m, --mets | Validate METS XML |
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
 ```sh
-$ baroque.py SOURCE_DIR DESTINATION_DIR -m/--mets -e/export PATH
+$ baroque.py SOURCE_DIR -m/--mets -e/export PATH
 ```
 
 ### Validate WAV BEXT chunks
-This step validates each WAV file in an item's embedded BEXT chunk. THis includes validating that various bits of metadata exist (e.g., `TimeReference` and `CodingHistory`), that the value of various bits of metadata match what's expected (e.g., that `Description` matches the `ItemTitle` field in the metadata export and that `OriginatorReference` follows the appropriate convention) and that various bits of metadata can be recognized as times or dates (e.g., `OriginationTime` and `OriginationDate`).
+This step validates each WAV file in an item's embedded BEXT chunk. This includes validating that various bits of metadata exist (e.g., `TimeReference` and `CodingHistory`), that the value of various bits of metadata match what's expected (e.g., that `Description` matches the `ItemTitle` field in the metadata export and that `OriginatorReference` follows the appropriate convention) and that various bits of metadata can be recognized as times or dates (e.g., `OriginationTime` and `OriginationDate`).
 
 | Argument | Help |
 | --- | --- |
 | SOURCE_DIR | Path to a source directory (a shipment, collection, or item) |
-| DESTINATION_DIR | Path to a destination directory where reports will be saved |
 | -w, --wav | Validate WAV BEXT chunk |
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
 ```sh
-$ baroque.py SOURCE_DIR DESTINATION_DIR -m/--mets -e/export PATH
+$ baroque.py SOURCE_DIR -m/--mets -e/export PATH
 ```
 
 ### Validate files
@@ -85,6 +82,9 @@ Not yet implemented.
 
 ### Validate checksums
 Not yet implemented.
+
+### config.ini
+An optional `config.ini` file can be supplied in the top-level `baroque` directory to supply BAroQUe with a path to a destination directory where reports will be saved and various tools. See `config-sample.ini` for an example of what this file should look like.
 
 ## General Functionality
 
