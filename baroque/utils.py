@@ -9,6 +9,11 @@ def sanitize_text(text):
     else:
         text = re.sub(r"\n", " ", text)
         text = re.sub(r"\s+", " ", text)
-        text = text.replace('“', '"').replace('”', '"')
+        text = text.replace('“', '"').replace('”', '"').replace('"', "")
+        text = text.replace("'", "")
+        text = text.replace("-", "")
+        text = text.replace(";", "")
+        text = text.replace("…", "")
+        text = text.replace ("&", "and")
         text = text.strip()
         return text

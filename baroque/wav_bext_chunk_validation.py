@@ -99,7 +99,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
         Helper function to see if WAV BEXT chunk Coding History subelement matches an expected value"""
         for coding_history in coding_histories:
             for subelement_tag, subelement_text in coding_history.items():
-                if subelement_tag == tag and subelement_text not in values:
+                if subelement_tag == tag and sanitize_text(subelement_text) not in values:
                     self.error(
                         path_to_wav,
                         self.item_id,
