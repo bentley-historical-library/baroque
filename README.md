@@ -84,7 +84,7 @@ Not yet implemented.
 Not yet implemented.
 
 ### config.ini
-An optional `config.ini` file can be supplied in the top-level `baroque` directory to supply BAroQUe with a path to a destination directory where reports will be saved and various tools. See `config-sample.ini` for an example of what this file should look like.
+An optional `config.ini` file can be supplied in the top-level `baroque` directory to supply BAroQUe with a path to a destination directory where reports will be saved and various tools. See below or the `config-sample.ini` for an example of what this file should look like. 
 
 ```ini
 [reports]
@@ -101,6 +101,12 @@ Each of the quality control microservices uses a `BaroqueProject` object, which 
 
 ### BaroqueValidator
 Each of the quality control microservices detailed above is a subclass of a base `BaroqueValidator` class, which is defined in `baroque/baroque_validator.py`. The `BaroqueValidator` base class takes as its arguments a name for the validation step, a function to use as a validator, and a `BaroqueProject` object. The `BaroqueValidator` base class implements a few shared functions, including `validate`, which runs the configured validation function, `error`, which adds a requirement error to the `BaroqueProject` object, and `warn`, which adds a warning error to the `BaroqueProject` object. 
+
+#### Validate METS XML specs
+Not yet documented.
+
+#### Validate WAV BEXT chunk specs
+Not yet documented.
 
 ### Error reports
 Error reports are generated within `baroque/report_generation.py`. This script checks the `BaroqueProject` object and, if any errors have been found, creates a CSV detailing the validation step in which the error was found, the error type (either a requirement or a warning error), the path to the item or file containing the error, the identifier for the item containing the error, and an error message. The CSV is saved to the destination directory supplied when running BAroQUe and used the filenaming convention `source_directory-timestamp.csv` to avoid duplicate filenames. An error report is not generated if no errors are found.
