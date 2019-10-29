@@ -30,7 +30,9 @@ class WavBextChunkValidator(BaroqueValidator):
 
     def get_bwfmetaedit_csv(self, path_to_wav):
         """
-        Uses Windows 64-bit BWF MetaEdit CLI to get BEXT CSV:
+        Uses Windows 64-bit BWF MetaEdit CLI to get BEXT CSV
+
+        Example CSV:
         
         FileName,Description,Originator,OriginatorReference,OriginationDate,OriginationTime,TimeReference (translated),TimeReference,BextVersion,UMID,LoudnessValue,LoudnessRange,MaxTruePeakLevel,MaxMomentaryLoudness,MaxShortTermLoudness,CodingHistory,IARL,IART,ICMS,ICMT,ICOP,ICRD,IENG,IGNR,IKEY,IMED,INAM,IPRD,ISBJ,ISFT,ISRC,ISRF,ITCH
         R:\\BAroQUe\\2019012\\0648\\0648-SR-4\\0648-SR-4-1-2-am.wav,Paul Phillips (Tape No. 4),"US, MiU-H",MiU-H_0648-SR-4-1-am,2019-05-20,12:04:58,00:47:59.000,276384000,1,,,,,,,"A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
@@ -46,6 +48,8 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
         return bwfmetaedit_csv
 
     def check_bext_metadatum_exists(self, path_to_wav, row, metadatum):
+        """
+        Helper function to see if WAV BEXT chunk metadata element exists"""
         if not row.get(metadatum):
             self.error(
                 path_to_wav,
@@ -54,6 +58,8 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
             )
 
     def check_bext_metadatum_value_is(self, path_to_wav, row, metadatum, value):
+        """
+        Helper function to see if WAV BEXT chunk metadata element value matches an expected value"""
         self.check_bext_metadatum_exists(path_to_wav, row, metadatum)
         if row.get(metadatum) and sanitize_text(row[metadatum]) != sanitize_text(value):
             self.error(
@@ -63,6 +69,8 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
             )
 
     def check_bext_metadatum_value_is_datetime(self, path_to_wav, row, metadatum):
+        """
+        Helper function to see if WAV BEXT chunk metadata element value looks like a date or time"""
         self.check_bext_metadatum_exists(path_to_wav, row, metadatum)
         if row.get(metadatum) and not dateparser.parse(row[metadatum]):
             self.error(
@@ -72,6 +80,8 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
             )
 
     def check_num_coding_history_subelement_is_at_least_one(self, path_to_wav, coding_histories, tag):
+        """
+        Helper function to see if there is at least one of a WAV BEXT chunk Coding History subelement"""
         subelement_num = 0
         for coding_history in coding_histories:
             for subelement_tag, _ in coding_history.items():
@@ -85,6 +95,8 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
             )
     
     def check_coding_history_subelement_value(self, path_to_wav, coding_histories, tag, values):
+        """
+        Helper function to see if WAV BEXT chunk Coding History subelement matches an expected value"""
         for coding_history in coding_histories:
             for subelement_tag, subelement_text in coding_history.items():
                 if subelement_tag == tag and subelement_text not in values:
@@ -96,8 +108,14 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
 
     
     def check_coding_history_subelements(self, path_to_wav, row):
-        # "A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
-        # A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D"
+        """
+        Validates WAV BEXT chunk Coding History subelements
+
+        Example Coding History:
+        
+        A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
+        A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D"""
+
         self.check_bext_metadatum_exists(path_to_wav, row, "CodingHistory")
         if row.get("CodingHistory"):
             coding_histories = []
@@ -111,7 +129,6 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                         coding_history[subelement_tag] = subelement_text
                     coding_histories.append(coding_history)
         
-            # BEXT chunk "Coding History" field may only use appropriate, comma-separated codes (A=, F=, B=, W=, M=, T=)
             acceptable_subelement_tags = [
                     "A", # Coding algorithm
                     "F", # Sampling frequency
@@ -144,6 +161,9 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
 
     
     def validate_bwfmetaedit_csv(self, path_to_wav, bwfmetaedit_csv):
+        """
+        Validates BWF Metedit WAV BEXT chunk CSV"""
+
         with io.StringIO(bwfmetaedit_csv.decode("utf-8")) as f:
             reader = csv.DictReader(f)
             for row in reader:
