@@ -86,6 +86,14 @@ Not yet implemented.
 ### config.ini
 An optional `config.ini` file can be supplied in the top-level `baroque` directory to supply BAroQUe with a path to a destination directory where reports will be saved and various tools. See `config-sample.ini` for an example of what this file should look like.
 
+```ini
+[reports]
+path=path\to\reports
+
+[bwf_metaedit]
+path=path\to\bwfmetaedit.exe
+```
+
 ## General Functionality
 
 ### BaroqueProject
