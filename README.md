@@ -102,10 +102,13 @@ Each of the quality control microservices uses a `BaroqueProject` object, which 
 ### BaroqueValidator
 Each of the quality control microservices detailed above is a subclass of a base `BaroqueValidator` class, which is defined in `baroque/baroque_validator.py`. The `BaroqueValidator` base class takes as its arguments a name for the validation step, a function to use as a validator, and a `BaroqueProject` object. The `BaroqueValidator` base class implements a few shared functions, including `validate`, which runs the configured validation function, `error`, which adds a requirement error to the `BaroqueProject` object, and `warn`, which adds a warning error to the `BaroqueProject` object. 
 
-#### Validate METS XML specs
+#### Detailed validate directory and file structure specs
 Not yet documented.
 
-#### Validate WAV BEXT chunk specs
+#### Detailed validate METS XML specs
+Not yet documented.
+
+#### Detailed validate WAV BEXT chunk specs
 Not yet documented.
 
 ### Error reports
