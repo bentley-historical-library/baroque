@@ -99,7 +99,7 @@ class StructureValidator(BaroqueValidator):
         # List of files that are checked.
         check_files = ["jpg", "xml", "txt", "other"]
 
-        for item in tqdm(self.project.items):
+        for item in tqdm(self.project.items, desc="Directory and File Structure Validation"):
             min_output = {}
             max_output = {}
             other_output = []

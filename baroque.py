@@ -1,4 +1,6 @@
 import argparse
+import configparser
+import os
 
 from baroque.baroque_project import BaroqueProject
 from baroque.checksum_validation import ChecksumValidator
@@ -12,7 +14,7 @@ from baroque.wav_bext_chunk_validation import WavBextChunkValidator
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", help="Path to source directory")
-    parser.add_argument("destination", help="Path to destination for reports")
+    parser.add_argument("-d", "--destination", help="Path to destination for reports")
     parser.add_argument("-s", "--structure", action="store_true", help="Validate directory and file structure")
     parser.add_argument("-e", "--export", help="Path to metadata export")
     parser.add_argument("-m", "--mets", action="store_true", help="Validate METS")
@@ -21,10 +23,20 @@ def main():
     parser.add_argument("-c", "--checksums", action="store_true", help="Validate checksums")
     args = parser.parse_args()
 
-    project = BaroqueProject(args.source, args.destination, args.export)
-
-    if (args.structure or args.mets) and not args.export:
-        print("SYSTEM ERROR: metadata export [-e] is required for structure and METS validation")
+    if args.destination:
+        project = BaroqueProject(args.source, args.destination, args.export)
+    else:
+        try:
+            config = configparser.ConfigParser()
+            config.read("config.ini")
+            project = BaroqueProject(args.source, config["reports"]["path"], args.export)
+        except:
+            if not os.path.isdir("reports"):
+                os.mkdir("reports")
+            project = BaroqueProject(args.source, "reports", args.export)
+        
+    if (args.structure or args.mets or args.wav) and not args.export:
+        print("SYSTEM ERROR: metadata export [-e] is required for directory and file structure, METS validation and WAV BEXT chunks validations")
         sys.exit()
 
     if args.structure:
