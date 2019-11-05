@@ -74,7 +74,7 @@ This step validates each WAV file in an item's embedded BEXT chunk. This include
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
 ```sh
-$ baroque.py SOURCE_DIR -m/--mets -e/export PATH
+$ baroque.py SOURCE_DIR -w/--wav -e/export PATH
 ```
 
 ### Validate files
@@ -82,6 +82,15 @@ Not yet implemented.
 
 ### Validate checksums
 Not yet implemented.
+
+
+### Validate directory, file structure, METS XML, WAV BEXT chunk
+This steps runs all validation checks described above.
+ 
+```sh
+$ baroque.py SOURCE_DIR -smw -e PATH
+```
+
 
 ### config.ini
 An optional `config.ini` file can be supplied in the top-level `baroque` directory to supply BAroQUe with a path to a destination directory where reports will be saved and various tools. See below or the `config-sample.ini` for an example of what this file should look like. 
