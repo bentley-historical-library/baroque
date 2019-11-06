@@ -51,6 +51,12 @@ This step validates the directory and file structure of the supplied source dire
 $ baroque.py SOURCE_DIR -s/--structure -e/--export PATH
 ```
 
+_or, with the optional destination argument..._
+
+```sh
+$ baroque.py SOURCE_DIR -d/--destination /path/to/reports -s/--structure -e/--export /path/to/metadata/export
+```
+
 ### Validate METS XML
 This step validates the METS XML for each item. This includes validating that various sections of the METS XML exist, including the `metsHdr`, `amdSec`, `dmdSec`, `fileSec`, `structMap`. Various conditions are also checked within each section, including confirming that descriptive metadata matches what was supplied in the metadata export and that files listed in the file section and structural map match what is found in the item's directory.
 
@@ -61,7 +67,13 @@ This step validates the METS XML for each item. This includes validating that va
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
 ```sh
-$ baroque.py SOURCE_DIR -m/--mets -e/export PATH
+$ baroque.py SOURCE_DIR -m/--mets -e/--export PATH
+```
+
+_or, with the optional destination argument..._
+
+```sh
+$ baroque.py SOURCE_DIR -d/--destination /path/to/reports -m/--mets -e/--export /path/to/metadata/export
 ```
 
 ### Validate WAV BEXT chunks
@@ -74,7 +86,13 @@ This step validates each WAV file in an item's embedded BEXT chunk. This include
 | -e, --export | Path to a metadata export (CSV or .xlsx) |
 
 ```sh
-$ baroque.py SOURCE_DIR -w/--wav -e/export PATH
+$ baroque.py SOURCE_DIR -w/--wav -e/--export PATH
+```
+
+_or, with the optional destination argument..._
+
+```sh
+$ baroque.py SOURCE_DIR -d/--destination /path/to/reports -w/--wav -e/--export /path/to/metadata/export
 ```
 
 ### Validate files
@@ -84,11 +102,17 @@ Not yet implemented.
 Not yet implemented.
 
 
-### Validate directory, file structure, METS XML, WAV BEXT chunk
+### Validate directory and file structure, METS XML and WAV BEXT chunks
 This steps runs all validation checks described above.
  
 ```sh
-$ baroque.py SOURCE_DIR -smw -e PATH
+$ baroque.py SOURCE_DIR -smw -e/--export /path/to/metadata/export
+```
+
+_or, with the optional destination argument..._
+
+```sh
+$ baroque.py SOURCE_DIR -d/--destination /path/to/reports -smw -e/--export /path/to/metadata/export
 ```
 
 
