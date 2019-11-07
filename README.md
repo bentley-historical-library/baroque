@@ -51,6 +51,8 @@ $ baroque.py /path/to/shipment -d /path/to/reports -s -e /path/to/metadata/expor
 ### Validate directory and file structure
 This step validates the directory and file structure of the supplied source directory. This includes validating that filenaming conventions meet expectations, that the expected number of various file types (e.g., .wav, .mp3, .xml) exist, and that the items found in the source directory match the items supplied in the metadata export.
 
+For more information, see [Structure Validation documentation](docs/Structure_Validation.md).
+
 | Argument | Help |
 | --- | --- |
 | SOURCE_DIR | Path to a source directory (a shipment, collection, or item) |

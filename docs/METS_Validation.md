@@ -1,6 +1,6 @@
 ## BAroQUe METS File Validation
 
-Module used: mets_validation.py
+Module used: `mets_validation.py`
 
 BAroQUe performs the following checks on each METS XML file:
 
