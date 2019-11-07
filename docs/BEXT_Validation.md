@@ -1,4 +1,4 @@
-BAroQUe BEXT Validation
+## BAroQUe BEXT Validation
 
 Module used: wav_bext_chunk_validation.py
 
