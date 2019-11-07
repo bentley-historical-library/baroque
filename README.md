@@ -70,7 +70,7 @@ $ baroque.py SOURCE_DIR -d/--destination /path/to/reports -s/--structure -e/--ex
 ### Validate METS XML
 This step validates the METS XML for each item. This includes validating that various sections of the METS XML exist, including the `metsHdr`, `amdSec`, `dmdSec`, `fileSec`, `structMap`. Various conditions are also checked within each section, including confirming that descriptive metadata matches what was supplied in the metadata export and that files listed in the file section and structural map match what is found in the item's directory.
 
-For more information, see [METS Validation documentation](docs/METS_Validation.txt).
+For more information, see [METS Validation documentation](docs/METS_Validation.md).
 
 | Argument | Help |
 | --- | --- |
@@ -91,7 +91,7 @@ $ baroque.py SOURCE_DIR -d/--destination /path/to/reports -m/--mets -e/--export 
 ### Validate WAV BEXT chunks
 This step validates each WAV file in an item's embedded BEXT chunk. This includes validating that various bits of metadata exist (e.g., `TimeReference` and `CodingHistory`), that the value of various bits of metadata match what's expected (e.g., that `Description` matches the `ItemTitle` field in the metadata export and that `OriginatorReference` follows the appropriate convention) and that various bits of metadata can be recognized as times or dates (e.g., `OriginationTime` and `OriginationDate`).
 
-For more information, see [BEXT Validation documentation](docs/BEXT_Validation.txt).
+For more information, see [BEXT Validation documentation](docs/BEXT_Validation.md).
 
 | Argument | Help |
 | --- | --- |
