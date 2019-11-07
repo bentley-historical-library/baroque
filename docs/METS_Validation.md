@@ -1,4 +1,4 @@
-BAroQUe METS File Validation
+## BAroQUe METS File Validation
 
 Module used: mets_validation.py
 
