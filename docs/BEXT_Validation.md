@@ -1,6 +1,6 @@
 ## BAroQUe BEXT Validation
 
-Module used: wav_bext_chunk_validation.py
+Module used: `wav_bext_chunk_validation.py`
 
 BAroQUe performs the following checks on each WAVE file:
 
