@@ -5,6 +5,7 @@ import subprocess
 import io
 from tqdm import tqdm
 
+from baroque import defaults
 from .baroque_validator import BaroqueValidator
 from .utils import sanitize_text
 
@@ -14,7 +15,7 @@ class WavBextChunkValidator(BaroqueValidator):
         validation = "wav_bext_chunk"
         validator = self.validate_wav_bext_chunks
         super().__init__(validation, validator, project)
-    
+
     def get_paths_to_wavs(self, item):
         self.item_id = item["id"]
         self.path_to_item = item["path"]
@@ -24,7 +25,7 @@ class WavBextChunkValidator(BaroqueValidator):
         wav_files = item['files']['wav']
         for wav_file in wav_files:
             paths_to_wavs.append(os.path.join(path_to_item, wav_file))
-        
+
         return paths_to_wavs
 
     def get_bwfmetaedit_csv(self, path_to_wav):
@@ -32,12 +33,12 @@ class WavBextChunkValidator(BaroqueValidator):
         Uses Windows 64-bit BWF MetaEdit CLI to get BEXT CSV
 
         Example CSV:
-        
+
         FileName,Description,Originator,OriginatorReference,OriginationDate,OriginationTime,TimeReference (translated),TimeReference,BextVersion,UMID,LoudnessValue,LoudnessRange,MaxTruePeakLevel,MaxMomentaryLoudness,MaxShortTermLoudness,CodingHistory,IARL,IART,ICMS,ICMT,ICOP,ICRD,IENG,IGNR,IKEY,IMED,INAM,IPRD,ISBJ,ISFT,ISRC,ISRF,ITCH
         R:\\BAroQUe\\2019012\\0648\\0648-SR-4\\0648-SR-4-1-2-am.wav,Paul Phillips (Tape No. 4),"US, MiU-H",MiU-H_0648-SR-4-1-am,2019-05-20,12:04:58,00:47:59.000,276384000,1,,,,,,,"A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
 A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan",,,,,,,,,Reel-to-reel; 7 inch; Sony; None; Polyester"""
 
-        bwfmetaedit_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "bwfmetaedit.exe")
+        bwfmetaedit_path = defaults.BWFMETAEDIT
         cmd = [bwfmetaedit_path, "--out-core", path_to_wav]
         bwfmetaedit_csv = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
@@ -89,7 +90,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                 self.item_id,
                 "no " + tag + " field in coding history"
             )
-    
+
     def check_coding_history_subelement_value(self, path_to_wav, coding_histories, tag, values):
         """
         Helper function to see if WAV BEXT chunk Coding History subelement matches an expected value"""
@@ -102,13 +103,12 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                         tag + " field value " + subelement_text + " not in " + str(values)
                     )
 
-    
     def check_coding_history_subelements(self, path_to_wav, row):
         """
         Validates WAV BEXT chunk Coding History subelements
 
         Example Coding History:
-        
+
         A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
         A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D"""
 
@@ -124,7 +124,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                         subelement_text = subelement.split("=")[1]
                         coding_history[subelement_tag] = subelement_text
                     coding_histories.append(coding_history)
-        
+
             acceptable_subelement_tags = [
                     "A", # Coding algorithm
                     "F", # Sampling frequency
@@ -141,13 +141,13 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
                             self.item_id,
                             subelement_tag + " not in list of acceptable coding history subelement tags"
                         )
-            
+
             self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "A")
             self.check_coding_history_subelement_value(path_to_wav, coding_histories, "A", ["ANALOGUE", "PCM"])
 
             self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "F")
             self.check_coding_history_subelement_value(path_to_wav, coding_histories, "F", ["96000"])
-            
+
             self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "W")
             self.check_coding_history_subelement_value(path_to_wav, coding_histories, "W", ["24"])
 
@@ -155,7 +155,6 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
 
             self.check_num_coding_history_subelement_is_at_least_one(path_to_wav, coding_histories, "T")
 
-    
     def validate_bwfmetaedit_csv(self, path_to_wav, bwfmetaedit_csv):
         """
         Validates BWF Metedit WAV BEXT chunk CSV"""
@@ -185,13 +184,12 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
 
                 self.check_coding_history_subelements(path_to_wav, row)
 
-
     def validate_wav_bext_chunks(self):
-        """ 
+        """
         Validates WAV BEXT chunks """
 
         for item in tqdm(self.project.items, desc="WAV BEXT Chunk Validation"):
             paths_to_wavs = self.get_paths_to_wavs(item)
-            for path_to_wav in paths_to_wavs: 
+            for path_to_wav in paths_to_wavs:
                 bwfmetaedit_csv = self.get_bwfmetaedit_csv(path_to_wav)
                 self.validate_bwfmetaedit_csv(path_to_wav, bwfmetaedit_csv)
