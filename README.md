@@ -27,7 +27,7 @@ The **Bentley Audiovisual Quality control Utility (BAroQUe)** is a Python 3-base
 ## Usage
 BAroQUe's functionality is implemented in `baroque.py`, which is a command line script that takes as its input a minimum of 3 arguments:
 - The path to a source_directory that corresponds to either a shipment, a collection, or an item directory
-- An optional argument (`-d, --destination`) with a path to a destination directory where reports and logs will be stored. In the absence of this argument, BAroQUe checks the `config.ini` file for the path to a destination directory. Failing that, BAroQUe defaults to a `/reports` directory.
+- An optional argument (`-d, --destination`) with a path to a destination directory where reports and logs will be stored. In the absence of this argument, BAroQUe checks a `.baroque` configuration file in the current user's home directory. Failing that, BAroQUe defaults to a `reports` directory in the BAroQUe installation's base directory.
 - The validation action to be run against the source directory
 
 Certain validation actions (`structure`, `mets` and `wav`) require a fourth argument: the path to a metadata export (CSV or XLSX) to validate against. BAroQUe expects this metadata export to contain at least the following column headers: "DigFile Calc", CollectionTitle", "ItemTitle", and "ItemDate".
@@ -132,15 +132,12 @@ $ baroque.py SOURCE_DIR -d/--destination /path/to/reports -smw -e/--export /path
 ```
 
 
-### config.ini
-An optional `config.ini` file can be supplied in the top-level `baroque` directory to supply BAroQUe with a path to a destination directory where reports will be saved and various tools. See below or the `config-sample.ini` for an example of what this file should look like. 
+### .baroque
+A `.baroque` configuration file can be used to configure user-specific defaults, currently limited to configuring a default destination directory where reports will be saved. BAroQUe checks for a `.baroque` configuration file in the current user's home directory (e.g., `/home/username` or `C:\Users\username`) and will prompt the user to create the configuration file if it does not exist.
 
 ```ini
-[reports]
-path=path\to\reports
-
-[bwf_metaedit]
-path=path\to\bwfmetaedit.exe
+[defaults]
+destination = path\to\default\reports\directory
 ```
 
 ## General Functionality
