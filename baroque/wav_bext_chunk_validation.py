@@ -1,4 +1,3 @@
-import configparser
 import csv
 import dateparser
 import os
@@ -38,12 +37,9 @@ class WavBextChunkValidator(BaroqueValidator):
         R:\\BAroQUe\\2019012\\0648\\0648-SR-4\\0648-SR-4-1-2-am.wav,Paul Phillips (Tape No. 4),"US, MiU-H",MiU-H_0648-SR-4-1-am,2019-05-20,12:04:58,00:47:59.000,276384000,1,,,,,,,"A=ANALOGUE,M=mono,T=Studer A-810; 7.5 ips; open reel
 A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan",,,,,,,,,Reel-to-reel; 7 inch; Sony; None; Polyester"""
 
-        try:
-            config = configparser.ConfigParser()
-            config.read(os.path.join(".", "config.ini"))
-            bwfmetaedit_csv = subprocess.check_output([os.path.join(".", config["bwf_metaedit"]["path"]), "--out-core", path_to_wav], stderr=subprocess.STDOUT)
-        except: 
-            bwfmetaedit_csv = subprocess.check_output(["./tools/bwfmetaedit.exe", "--out-core", path_to_wav], stderr=subprocess.STDOUT)
+        bwfmetaedit_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "bwfmetaedit.exe")
+        cmd = [bwfmetaedit_path, "--out-core", path_to_wav]
+        bwfmetaedit_csv = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
         return bwfmetaedit_csv
 
