@@ -14,9 +14,9 @@ from baroque.wav_bext_chunk_validation import WavBextChunkValidator
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", help="Path to source directory")
+    parser.add_argument("export", help="Path to metadata export")
     parser.add_argument("-d", "--destination", help="Path to destination for reports")
     parser.add_argument("-s", "--structure", action="store_true", help="Validate directory and file structure")
-    parser.add_argument("-e", "--export", help="Path to metadata export")
     parser.add_argument("-m", "--mets", action="store_true", help="Validate METS")
     parser.add_argument("-w", "--wav", action="store_true", help="Validate WAV BEXT chunks")
     parser.add_argument("-f", "--files", action="store_true", help="Validate file formats")
