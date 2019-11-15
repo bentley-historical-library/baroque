@@ -5,6 +5,8 @@ import warnings
 
 from openpyxl import load_workbook
 
+from baroque import defaults
+
 
 class BaroqueProject(object):
     """
@@ -57,8 +59,10 @@ class BaroqueProject(object):
             print("SYSTEM ERROR: source_directory does not exist")
             sys.exit()
         if not os.path.exists(destination_directory):
-            print("SYSTEM ERROR: destination_directory does not exist")
-            sys.exit()
+            print("SYSTEM WARNING: destination_directory {} does not exist. Using default directory {}".format(destination_directory, defaults.REPORTS_DIR))
+            if not os.path.exists(defaults.REPORTS_DIR):
+                os.mkdir(defaults.REPORTS_DIR)
+            destination_directory = defaults.REPORTS_DIR
 
         self.source_directory = source_directory
         self.destination_directory = destination_directory

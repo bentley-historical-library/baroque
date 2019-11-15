@@ -1,9 +1,9 @@
 import argparse
-import configparser
-import os
 
+from baroque import defaults
 from baroque.baroque_project import BaroqueProject
 from baroque.checksum_validation import ChecksumValidator
+from baroque.config import get_config_setting
 from baroque.file_format_validation import FileFormatValidator
 from baroque.mets_validation import MetsValidator
 from baroque.report_generation import generate_reports
@@ -24,21 +24,11 @@ def main():
     args = parser.parse_args()
 
     if args.destination:
-        project = BaroqueProject(args.source, args.destination, args.export)
+        destination = args.destination
     else:
-        try:
-            config = configparser.ConfigParser()
-            config.read("config.ini")
-            project = BaroqueProject(args.source, config["reports"]["path"], args.export)
-        except:
-            if not os.path.isdir("reports"):
-                os.mkdir("reports")
-            project = BaroqueProject(args.source, "reports", args.export)
-        
-    if (args.structure or args.mets or args.wav) and not args.export:
-        print("SYSTEM ERROR: metadata export [-e] is required for directory and file structure, METS validation and WAV BEXT chunks validations")
-        sys.exit()
+        destination = get_config_setting("destination", default=defaults.REPORTS_DIR)
 
+    project = BaroqueProject(args.source, destination, args.export)
     if args.structure:
         StructureValidator(project).validate()
     if args.mets:
