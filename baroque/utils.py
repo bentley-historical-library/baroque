@@ -18,9 +18,9 @@ def sanitize_text(string):
         keep_characters = (" ", "/")
         string = "".join(c for c in string if c.isalnum() or c in keep_characters)
 
-        # Normalize unicode accents AND remove unicode-specific characters
+        # Normalize unicode accents
         # https://stackoverflow.com/questions/44431730/how-to-replace-accented-characters-in-python?rq=1
         # https://docs.python.org/3.8/library/unicodedata.html#unicodedata.normalize
-        string = unicodedata.normalize('NFKC', string).encode('ascii', 'ignore').decode()
+        string = unicodedata.normalize('NFD', string).encode('ascii', 'ignore').decode()
 
         return string
