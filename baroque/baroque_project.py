@@ -54,7 +54,7 @@ class BaroqueProject(object):
     }
     """
 
-    def __init__(self, source_directory, destination_directory, metadata_export=None):
+    def __init__(self, source_directory, destination_directory, metadata_export):
         if not os.path.exists(source_directory):
             print("SYSTEM ERROR: source_directory does not exist")
             sys.exit()
@@ -67,14 +67,13 @@ class BaroqueProject(object):
         self.source_directory = source_directory
         self.destination_directory = destination_directory
         self.metadata_export = metadata_export
-        self.errors = {}
-
-        if self.metadata_export:
-            self.metadata = self.parse_metadata_export(metadata_export)
+        
+        self.metadata = self.parse_metadata_export(metadata_export)
 
         self.shipment = []
         self.collections = []
         self.items = []
+        self.errors = {}
 
         self.source_type = self.characterize_source_directory()
         print("SYSTEM REPORT: source_directory is {}".format(self.source_type))
