@@ -128,10 +128,10 @@ class MetsValidator(BaroqueValidator):
         """
         Helper function that compares dates from a metadata spreadsheet and METS XML"""
         metadata_date = sanitize_text(metadata_date)
+        mets_date = sanitize_text(mets_date)
         if metadata_date == "Undated" and mets_date == "undated":
             pass
-        # Trying to get around character encoding issues at the end of dates discovered during testing
-        if dateparser.parse(metadata_date) != dateparser.parse(mets_date) and dateparser.parse(metadata_date[:-1]) != dateparser.parse(mets_date):
+        if dateparser.parse(metadata_date) != dateparser.parse(mets_date):
             self.error(
                     self.path_to_mets,
                     self.item_id,
