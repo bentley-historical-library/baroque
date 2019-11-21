@@ -17,7 +17,6 @@ class StructureValidator(BaroqueValidator):
         validator = self.validate_structure
         super().__init__(validation, validator, project)
 
-
     def parse_baroqueproject(self, level):
         ids = []
         paths = []
@@ -28,11 +27,9 @@ class StructureValidator(BaroqueValidator):
 
         return ids, paths
 
-
     def check_empty_directory(self, directory_path):
         if len(os.listdir(directory_path)) == 0:
             self.error(directory_path, os.path.basename(directory_path), "empty directory")
-
 
     def check_empty_file(self, file_path):
         for dirpath, dirnames, filenames in os.walk(file_path):
@@ -42,7 +39,6 @@ class StructureValidator(BaroqueValidator):
                     file_size = os.path.getsize(file_path)
                     if file_size == 0:
                         self.error(file_path, os.path.basename(file_path), "empty file")
-
 
     def validate_directory(self, level):
         """
@@ -82,7 +78,6 @@ class StructureValidator(BaroqueValidator):
         # Check for any empty directory.
         for path in process_paths:
             self.check_empty_directory(path)
-
 
     def check_item_files(self):
         """
@@ -179,7 +174,6 @@ class StructureValidator(BaroqueValidator):
 
             self.check_empty_file(item["path"])
 
-
     def create_intellectual_groups(self):
         """
         Create intellectual groups of md5, mp3, and wav files, which make up a digital part.
@@ -214,7 +208,6 @@ class StructureValidator(BaroqueValidator):
 
         return items
 
-
     def check_intellectual_groups_numbers(self):
             """
             Make sure that intellectual groups are well-formed by checking that each part number is consecutively numbered.
@@ -248,7 +241,6 @@ class StructureValidator(BaroqueValidator):
                         item,
                          "item has digital parts that are not consecutively numbered: {}".format(part_ids)
                     )
-
 
     def check_intellectual_groups_files(self):
         """
@@ -352,7 +344,6 @@ class StructureValidator(BaroqueValidator):
         self.check_intellectual_groups_numbers()
         self.check_intellectual_groups_files()
 
-
     def validate_structure(self):
         """
         If the source directory is a shipment,
@@ -365,7 +356,7 @@ class StructureValidator(BaroqueValidator):
             for level in levels:
                 self.validate_directory(level)
 
-        elif self.project.source_type == "collection":
+        else:
             level = "items"
             self.validate_directory(level)
 
