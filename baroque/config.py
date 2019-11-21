@@ -28,7 +28,8 @@ def _load_config():
 
 
 def _create_config(config, config_file):
-    reports_dir = input("Enter a default reports directory: ").strip()
+    reports_dir_input = input("Enter a default reports directory: ")
+    reports_dir = os.path.normpath(reports_dir_input.strip('"\' '))
     config.add_section("defaults")
     config.set("defaults", "destination", reports_dir)
     _save_config(config, config_file)
