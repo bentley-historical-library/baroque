@@ -56,19 +56,20 @@ class BaroqueProject(object):
 
     def __init__(self, source_directory, destination_directory, metadata_export):
         if not os.path.exists(source_directory):
-            print("SYSTEM ERROR: source_directory does not exist")
+            print("SYSTEM ERROR: source_directory does not exist: {}".format(source_directory))
             sys.exit()
         if not os.path.exists(destination_directory):
             print("SYSTEM WARNING: destination_directory {} does not exist. Using default directory {}".format(destination_directory, defaults.REPORTS_DIR))
             if not os.path.exists(defaults.REPORTS_DIR):
                 os.mkdir(defaults.REPORTS_DIR)
             destination_directory = defaults.REPORTS_DIR
+        if not os.path.exists(metadata_export):
+            print("SYSTEM ERROR: metadata export does not exist: {}".format(metadata_export))
+            sys.exit()
 
         self.source_directory = source_directory
         self.destination_directory = destination_directory
         self.metadata_export = metadata_export
-        
-        self.metadata = self.parse_metadata_export(metadata_export)
 
         self.shipment = []
         self.collections = []
@@ -83,6 +84,8 @@ class BaroqueProject(object):
             self.parse_collection(source_directory)
         elif self.source_type == "item":
             self.parse_item(source_directory)
+
+        self.metadata = self.parse_metadata_export()
 
     def characterize_source_directory(self):
         """
@@ -201,14 +204,12 @@ class BaroqueProject(object):
                 values = [c.value for c in row]
             yield dict(zip(keys, values))
 
-    def parse_metadata_export(self, metadata_export):
+    def parse_metadata_export(self):
         """
         This function parses the metadata export supplied by BHL to the vendor (either a CSV or xlsx file)
         It stores the values of the DigFile Calc, CollectionTitlte, ItemTitle, and ItemDate columns
         """
-        if not os.path.exists(metadata_export):
-            print("SYSTEM ERROR: metadata export does not exist")
-            sys.exit()
+        metadata_export = self.metadata_export
 
         metadata = {"collections_ids": [], "items_ids": [], "item_metadata": {}}
 
@@ -238,7 +239,11 @@ class BaroqueProject(object):
 
             for row in self._read_export(keys, rows, export_type):
                 item_id = row.get(item_id_column)
+                if self.source_type == "item" and item_id not in [item["id"] for item in self.items]:
+                    continue
                 collection_id = self._parse_collection_id(item_id)
+                if self.source_type == "collection" and collection_id not in [collection["id"] for collection in self.collections]:
+                    continue
                 collection_title = row.get(collection_title_column)
                 item_title = row.get(item_title_column)
                 item_date = row.get(item_date_column)
