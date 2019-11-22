@@ -9,6 +9,7 @@ The **Bentley Audiovisual Quality control Utility (BAroQUe)** is a Python 3-base
 - Hyeeyoung Kim ([hyeeyoungkim](https://github.com/hyeeyoungkim))
 - Liz Gadelha ([lizgad](https://github.com/lizgad))
 - Max Eckard ([eckardm](https://github.com/eckardm))
+- Maryse Lundering-Timpano ([MaryseLT](https://github.com/MaryseLT))
 - Matt Adair ([umadair](https://github.com/umadair))
 - Melissa Hernández-Durán ([mhdezd](https://github.com/mhdezd))
 - Tim Baron ([tlbaron](https://github.com/tlbaron))
