@@ -113,13 +113,13 @@ $ baroque.py SOURCE_DIR EXPORT_DIR -d/--destination /path/to/reports -w/--wav
 This steps runs all validation checks described above.
  
 ```sh
-$ baroque.py SOURCE_DIR EXPORT_DIR -smw
+$ baroque.py SOURCE_DIR EXPORT_DIR --all
 ```
 
 _or, with the optional destination argument..._
 
 ```sh
-$ baroque.py SOURCE_DIR EXPORT_DIR -d/--destination /path/to/reports -smw
+$ baroque.py SOURCE_DIR EXPORT_DIR -d/--destination /path/to/reports --all
 ```
 
 
