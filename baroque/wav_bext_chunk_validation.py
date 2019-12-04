@@ -62,7 +62,7 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
             self.error(
                 path_to_wav,
                 self.item_id,
-                metadatum + " value of " + row[metadatum] + " in bext chunk does not equal " + value
+                metadatum + " value of " + row[metadatum] + " in bext chunk does not equal {}".format(value)
             )
 
     def check_bext_metadatum_value_is_datetime(self, path_to_wav, row, metadatum):

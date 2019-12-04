@@ -204,19 +204,26 @@ class BaroqueProject(object):
                 values = [c.value for c in row]
             yield dict(zip(keys, values))
 
+    def check_values_exist(self, value_name, value_var, row_counter):
+        if value_var is None:
+            print("SYSTEM ERROR: {} missing in row {} of metadata export".format(value_name, row_counter))
+            sys.exit()
+
     def parse_metadata_export(self):
         """
         This function parses the metadata export supplied by BHL to the vendor (either a CSV or xlsx file)
-        It stores the values of the DigFile Calc, CollectionTitlte, ItemTitle, and ItemDate columns
+        It stores the values of the DigFile Calc, CollectionTitle, ItemTitle, and ItemDate columns
         """
         metadata_export = self.metadata_export
 
         metadata = {"collections_ids": [], "items_ids": [], "item_metadata": {}}
 
-        item_id_column = "DigFile Calc"
-        collection_title_column = "COLLECTIONS::CollectionTitle"
-        item_title_column = "ItemTitle"
-        item_date_column = "ItemDate"
+        column_headers = {
+            "item_id_column" : "DigFile Calc",
+            "collection_title_column" : "COLLECTIONS::CollectionTitle",
+            "item_title_column" : "ItemTitle",
+            "item_date_column" : "ItemDate"
+            }
 
         export_type = os.path.splitext(metadata_export)[1]
         if export_type in [".csv", ".xlsx"]:
@@ -237,14 +244,28 @@ class BaroqueProject(object):
                 rows = [row for row in reader]
                 workbook.close()
 
+            for header in column_headers.keys():
+                if column_headers[header] not in keys:
+                    print("SYSTEM WARNING: '{}' column not found in metadata export".format(column_headers[header]))
+                    column_headers[header] = input("Type the column name for '{}' values and press Enter: ".format(column_headers[header]))
+
+            item_id_column = column_headers["item_id_column"]
+            collection_title_column = column_headers["collection_title_column"]
+            item_title_column = column_headers["item_title_column"]
+            item_date_column = column_headers["item_date_column"]
+            row_counter = 1
+
             for row in self._read_export(keys, rows, export_type):
+                row_counter += 1
                 item_id = row.get(item_id_column)
+                self.check_values_exist("item id (DigFile Calc)", item_id, row_counter)
                 if self.source_type == "item" and item_id not in [item["id"] for item in self.items]:
                     continue
                 collection_id = self._parse_collection_id(item_id)
                 if self.source_type == "collection" and collection_id not in [collection["id"] for collection in self.collections]:
                     continue
                 collection_title = row.get(collection_title_column)
+                self.check_values_exist("collection title", collection_title, row_counter)
                 item_title = row.get(item_title_column)
                 item_date = row.get(item_date_column)
                 metadata["items_ids"].append(item_id)
