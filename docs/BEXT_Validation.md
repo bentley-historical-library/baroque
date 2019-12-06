@@ -1,5 +1,9 @@
 ## BAroQUe BEXT Validation
 
+### Validate WAV BEXT chunks
+This step validates each WAV file in an item's embedded BEXT chunk. This includes validating that various bits of metadata exist (e.g., `TimeReference` and `CodingHistory`), that the value of various bits of metadata match what's expected (e.g., that `Description` matches the `ItemTitle` field in the metadata export and that `OriginatorReference` follows the appropriate convention) and that various bits of metadata can be recognized as times or dates (e.g., `OriginationTime` and `OriginationDate`).
+
+
 Module used: `wav_bext_chunk_validation.py`
 
 BAroQUe performs the following checks on each WAVE file:

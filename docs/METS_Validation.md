@@ -1,5 +1,8 @@
 ## BAroQUe METS File Validation
 
+### Validate METS XML
+This step validates the METS XML for each item. This includes validating that various sections of the METS XML exist, including the `metsHdr`, `amdSec`, `dmdSec`, `fileSec`, `structMap`. Various conditions are also checked within each section, including confirming that descriptive metadata matches what was supplied in the metadata export and that files listed in the file section and structural map match what is found in the item's directory.
+
 Module used: `mets_validation.py`
 
 BAroQUe performs the following checks on each METS XML file:

@@ -1,5 +1,8 @@
 ## BAroQUe Structure Validation
 
+### Validate directory and file structure
+This step validates the directory and file structure of the supplied source directory. This includes validating that filenaming conventions meet expectations, that the expected number of various file types (e.g., .wav, .mp3, .xml) exist, and that the items found in the source directory match the items supplied in the metadata export.
+
 Module used: `structure_validation.py`
 
 BAroQUe performs the following checks:
