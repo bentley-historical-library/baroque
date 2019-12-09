@@ -248,6 +248,10 @@ class BaroqueProject(object):
                 if column_headers[header] not in keys:
                     print("SYSTEM WARNING: '{}' column not found in metadata export".format(column_headers[header]))
                     column_headers[header] = input("Type the column name for '{}' values and press Enter: ".format(column_headers[header]))
+                    if column_headers[header] in keys:
+                        print("SYSTEM REPORT: '{}' column found, proceeding as usual".format(column_headers[header]))
+                    else:
+                        print("SYSTEM REPORT: '{}' column not found, will not compare".format(column_headers[header]))
 
             item_id_column = column_headers["item_id_column"]
             collection_title_column = column_headers["collection_title_column"]
