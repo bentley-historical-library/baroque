@@ -22,10 +22,12 @@ destination = path\to\default\reports\directory
 ```
 
 ### Building a release
-BAroQUe uses the cx_Freeze Python module to create a `baroque.exe` file that can be shared with users without requiring them to install Python and BAroQUe's dependencies. The `setup.py` file in BAroQUe's root directory takes care of most of the work. If you are developing for BAroQUe and add any new required packages, add them to the `packages` array in `build_exe_options` within the `setup.py` file. Otherwise, to build a new release, run the following command from the BAroQUe root directory:
+BAroQUe uses the cx_Freeze Python module to create a `baroque.exe` file that can be shared with users without requiring them to install Python and BAroQUe's dependencies. The `setup.py` file in BAroQUe's root directory takes care of most of the work of ensuring that all Python packages and third party tools are included. If you are developing for BAroQUe and add any new required packages, add them to the `packages` array in `build_exe_options` within the `setup.py` file. Any tools added to the `tools/` directory will be included by default, but should be added according to the existing examples in `baroque/defaults.py` to ensure that they can be found by both the development version (`baroque.py`) and the executable (`baroque.exe`).
+
+To build a new release, run the following command from within the BAroQUe root directory:
 
 ```
 python setup.py build
 ```
 
-This will create a `build/` directory with the BAroQUe root directory containing a subfolder (e.g., `exe.win32-3.7`) that contains a `baroque.exe` file, a copy of Python, and all of the modules, packages, and other scripts required to run `baroque.py`. Note that the version of Python and all dependencies will be the same as the versions installed in the environment in which the executable was created and can be used on other computers that share the same operating system as the machine on which the executable was created. The `baroque.exe` file functions exactly the same as `baroque.py`, e.g. to run all validation steps use the command `baroque.exe SOURCE_DIR EXPORT_FILE --all`. 
+This will create a `build/` directory with the BAroQUe root directory containing a subfolder (e.g., `exe.win32-3.7`) that contains a `baroque.exe` file, a copy of Python, and all of the modules, packages, data, and other files required to run `baroque.py`. Note that the version of Python and all dependencies will be the same as the versions installed in the environment in which the executable was created and that the executable can only be used on computers that share the same operating system as the machine on which the executable was created. The `baroque.exe` file functions exactly the same as `baroque.py`, e.g. to run all validation steps use the command `baroque.exe SOURCE_DIR EXPORT_FILE --all`. 
