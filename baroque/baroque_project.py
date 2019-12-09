@@ -269,7 +269,6 @@ class BaroqueProject(object):
                 if self.source_type == "collection" and collection_id not in [collection["id"] for collection in self.collections]:
                     continue
                 collection_title = row.get(collection_title_column)
-                self.check_values_exist("collection title", collection_title, row_counter)
                 item_title = row.get(item_title_column)
                 item_date = row.get(item_date_column)
                 metadata["items_ids"].append(item_id)
