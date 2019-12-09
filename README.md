@@ -18,6 +18,7 @@ This README includes general installation and usage documentation for BAroQUe. F
 
 ## Requirements
 - Requires Python 3.0 or higher.
+- [cx_Freeze](https://cx-freeze.readthedocs.io/en/latest/): To build an executable file
 - [dateparser](https://dateparser.readthedocs.io/en/latest/): To compare dates in metadata exports and METS XML
 - [lxml](https://lxml.de/): To parse METS XML files
 - [openpyxl](https://openpyxl.readthedocs.io/en/stable/): To read xlsx files
