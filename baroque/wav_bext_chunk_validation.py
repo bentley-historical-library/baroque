@@ -162,14 +162,14 @@ A=PCM,F=96000,W=24,M=mono,T=Antelope Audio;Orion 32;A/D",,,,,,,"Schreibeis, Ryan
         with io.StringIO(bwfmetaedit_csv.decode("utf-8")) as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if self.item_metadata:
+                if self.item_metadata and self.item_metadata.get("item_title"):
                     item_title = self.item_metadata.get("item_title")
                     self.check_bext_metadatum_value_is(path_to_wav, row, "Description", item_title)
                 else:
                     self.warn(
                         path_to_wav,
                         self.item_id,
-                        "item has no associated metadata in the metadata export spreadsheet to validate against wav bext chunk"
+                        "item title not found in metadata export spreadsheet to validate against wav bext chunk"
                     )
                     self.check_bext_metadatum_exists(path_to_wav, row, "Description")
 
