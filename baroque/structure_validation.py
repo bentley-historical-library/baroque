@@ -130,9 +130,9 @@ class StructureValidator(BaroqueValidator):
                     missing = min_file_nums[type] - min_output[type]
                     required = min_file_nums[type]
 
-                    # If there are only 2 jpgs presents, report as a warning.
+                    # If there is only 1 jpg present, report as a warning.
                     if "jpg" in min_output.keys():
-                        if min_output["jpg"] == 2:
+                        if min_output["jpg"] == 1:
                             self.warn(
                                 item["path"],
                                 item["id"],
