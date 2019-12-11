@@ -91,7 +91,7 @@ class StructureValidator(BaroqueValidator):
         Report out any "other" files and check whether any files are empty.
         """
         # Minimum number of files required.
-        min_file_nums = {"jpg": 3, "xml": 1, "txt": 0}
+        min_file_nums = {"jpg": 2, "xml": 1, "txt": 0}
         # Maximum number of files permissible.
         max_file_nums = {"xml": 1, "txt": 1}
         # List of "other" files that can be ignored.
