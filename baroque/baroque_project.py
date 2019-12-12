@@ -205,7 +205,7 @@ class BaroqueProject(object):
             yield dict(zip(keys, values))
 
     def check_values_exist(self, value_name, value_var, row_counter):
-        if value_var is None:
+        if not value_var:
             print("SYSTEM ERROR: {} missing in row {} of metadata export".format(value_name, row_counter))
             sys.exit()
 
