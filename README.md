@@ -1,7 +1,7 @@
 # BAroQUe
 BAroQUe: Bentley Audiovisual Quality control Utility
 
-![Tino, the Jazzy BAroQUe Cat](/assets/tino.PNG)
+<img src="/assets/tino.PNG" alt="Tino, the Jazzy BAroQUe Cat" width="150" />
 
 The **Bentley Audiovisual Quality control Utility (BAroQUe)** is a Python 3-based Command Line Interface (CLI) executable primarily intended for in-house use. It performs Quality Control (QC)--with microservices to validate directory and file naming structure, METS XML and WAV BEXT chunks--for audio digitized by vendors according to Bentley specifications.
 
