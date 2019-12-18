@@ -18,7 +18,7 @@ build_exe_options = {
 
 setup(
     name="baroque",
-    version="0.1",
+    version="1.0",
     description="Baroque CLI",
     options={"build_exe": build_exe_options},
     executables=executables
