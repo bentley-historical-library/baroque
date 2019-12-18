@@ -4,3 +4,4 @@ __pycache__
 .vscode
 reports/
 build/
+.DS_Store
