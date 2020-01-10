@@ -10,6 +10,7 @@ This README includes general installation and usage documentation for BAroQUe. F
 ## Contributors
 
 - Dallas Pillen ([djpillen](https://github.com/djpillen))
+- Devon Proudfoot ([devonproudfoot](https://github.com/devonproudfoot))
 - Hyeeyoung Kim ([hyeeyoungkim](https://github.com/hyeeyoungkim))
 - Liz Gadelha ([lizgad](https://github.com/lizgad))
 - Max Eckard ([eckardm](https://github.com/eckardm))
